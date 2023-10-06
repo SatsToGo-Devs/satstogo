@@ -1,4 +1,4 @@
-# satstogo
+# SATS to GO
 We aim to encourage punctual attendance through SATS rewards by developing an LN Bits extension for time and attendance tracking.
 
 ## Describe the problem you are solving
