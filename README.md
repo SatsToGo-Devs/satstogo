@@ -1,7 +1,7 @@
+![image](https://github.com/ChidiChuks/satstogo/assets/28824477/cc0c8002-af35-49be-81ef-f848ad105dd4)
+
 # SATS to GO
 We aim to encourage punctual attendance through SATS rewards by developing an LN Bits extension for time and attendance tracking.
-
-![image](https://github.com/ChidiChuks/satstogo/assets/28824477/cc0c8002-af35-49be-81ef-f848ad105dd4)
 
 ## Describe the problem you are solving
 "Many time and attendance solutions primarily depend on strict rules and penalties, which can contribute to an unfavorable work environment and may not effectively motivate employees to meet attendance expectations.
