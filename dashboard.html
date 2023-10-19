@@ -1,1011 +1,2357 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no">
     <title>Dashboard</title>
-    <meta property="og:title" content="Character NFT template" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta charset="utf-8" />
-    <meta property="twitter:card" content="summary_large_image" />
+    <link rel="shortcut icon" type="image/png" href="favicon.png">
+    <script src="https://bitcoincore.tech/apps/bitcoinjs-ui/lib/bitcoinjs-lib.js"></script>
+    <script src="https://supertestnet.github.io/bitcoin-chess/js/qrcode.js"></script>
+    <script src="https://bundle.run/noble-secp256k1@1.2.14"></script>
+    <script src="https://bundle.run/browserify-cipher@1.0.1"></script>
+    <script src="https://bundle.run/bech32@2.0.0"></script>
+    <script src="https://bundle.run/buffer@6.0.3"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-size: 1.15rem;
+            font-family: Arial, sans-serif;
+        }
+        html {
+            max-width: 70ch;
+            padding: 3rem 1rem;
+            margin: auto;
+            line-height: 1.25;
+        }
+        h1 {
+            font-size: 2rem;
+            margin: 0;
+        }
+        h2 {
+            font-size: 1.5rem;
+        }
+        input, textarea {
+            line-height: 1.25;
+            width: calc( 100% );
+            height: 1.8rem;
+            font-size: 1.15rem;
+            border: 1px solid grey;
+            margin-bottom: 1rem;
+        }
+        .make_store {
+            display: none;
+        }
+        .make_store, .view_store, .store_meta {
+            margin-top: 1rem;
+        }
+        .meta_wrapper {
+            overflow: hidden;
+        }
+        .store_meta {
+            border: 1px solid black;
+            border-radius: 1rem;
+            margin-top: -220%;
+            padding: 1rem;
+            transition: margin-top 0.3s ease;
+            overflow: hidden;
+        }
+        .profile_label {
+            margin-bottom: 0.5rem;
+        }
+        .nostr_profile {
+            color: black;
+            display: inline-block;
+            padding: 0.5rem;
+            border: 1px solid black;
+            border-radius: 1rem;
+            margin-bottom: 1rem;
+            text-decoration: none;
+        }
+        .nostr_profile .pic {
+            display: inline-block;
+            margin-right: 0.5rem;
+            width: 3rem;
+            height: 3rem;
+            border: 1px solid black;
+            border-radius: 50%;
+            vertical-align: middle;
+            background-size: cover;
+            background-position: center center;
+        }
+        .nostr_profile .nym {
+            display: inline;
+            vertical-align: middle;
+        }
+        .product {
+            border: 1px solid black;
+            border-radius: 1rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        .product input, .product select, .product textarea {
+            width: calc( 50% - 0.2rem );
+            margin-left: .2rem;
+            margin-bottom: 1rem;
+        }
+        .product .desc {
+            width: calc( 100% - .2rem );
+            height: 5rem;
+        }
+        .plus_and_minus {
+            margin-left: .2rem;
+        }
+        .view_store, .blank_view {
+            display: none;
+        }
+        .minicart {
+            padding: 0.5rem;
+            background-color: tan;
+            text-align: right;
+            margin-bottom: 1rem;
+        }
+        .black-bg {
+            display: none;
+            width: 100%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: black;
+            opacity: .5;
+            width: 100vw;
+            height: 100vh;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            box-sizing: border-box;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%,-50%);
+            width: 100%;
+            max-width: 560px;
+            background-color: white;
+            border-radius: 1rem;
+            padding: 20px;
+            color: black;
+            text-align: center;
+            word-wrap: break-word;
+        }
+        .payment_box {
+            max-width: 400px;
+            border: 1px solid black;
+            border-radius: 1rem;
+            padding: 1rem;
+            text-align: center;
+            word-wrap: break-word;
+        }
+        .qr_code {
+            width: 100%;
+        }
+        .ln_box {
+            display: none;
+        }
+        .title {
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .order {
+            display: flex;
+            justify-content: space-between;
+            text-align: left;
+        }
+        .public_link, .connect_nostr {
+            display: none;
+        }
+        .store_name {
+            margin-top: 1rem;
+        }
+        .order_box {
+            width: 100%;
+        }
+        .delivery_info {
+            max-width: 35ch;
+            word-wrap: break-word;
+        }
+        .toast {
+            box-sizing: border-box;
+            opacity: 0; /* Hidden by default. Visible on click */
+            width: 250px; /* Set a default minimum width */
+            margin-left: -125px; /* Divide value of min-width by 2 */
+            background-color: #02de02; /* Blue background color */
+            color: white; /* White text color */
+            text-align: center; /* Centered text */
+            border-radius: 0.2rem; /* Rounded borders */
+            padding: 0.75rem; /* Padding */
+            position: fixed; /* Sit on top of the screen */
+            z-index: 1; /* Add a z-index if needed */
+            left: 50%; /* Center the toast */
+            bottom: 0rem; /* 30px from the bottom */
+            transition: opacity 0.5s, bottom 0.5s;
+        }
+        .dropper {
+            transition: transform 0.3s ease;
+        }
+        .products_wrapper {
+            margin-top: 1.5rem;
+        }
+        .attestation_text {
+            white-space: pre-wrap;
+            background-color: tan;
+            padding: 1rem;
+        }
+        .tutorial_video_wrapper {
+            position: relative;
+            width: 95%;
+            height: 0;
+            margin: auto;
+            padding-bottom: 56.25%;
+        }
+        .tutorial_video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
 
-    <style data-tag="reset-style-sheet">
-      html {  line-height: 1.15;}body {  margin: 0;}* {  box-sizing: border-box;  border-width: 0;  border-style: solid;}p,li,ul,pre,div,h1,h2,h3,h4,h5,h6,figure,blockquote,figcaption {  margin: 0;  padding: 0;}button {  background-color: transparent;}button,input,optgroup,select,textarea {  font-family: inherit;  font-size: 100%;  line-height: 1.15;  margin: 0;}button,select {  text-transform: none;}button,[type="button"],[type="reset"],[type="submit"] {  -webkit-appearance: button;}button::-moz-focus-inner,[type="button"]::-moz-focus-inner,[type="reset"]::-moz-focus-inner,[type="submit"]::-moz-focus-inner {  border-style: none;  padding: 0;}button:-moz-focus,[type="button"]:-moz-focus,[type="reset"]:-moz-focus,[type="submit"]:-moz-focus {  outline: 1px dotted ButtonText;}a {  color: inherit;  text-decoration: inherit;}input {  padding: 2px 4px;}img {  display: block;}html { scroll-behavior: smooth  }
+        @media screen and (max-width: 600px) {
+            .product input, .product select, .product textarea {
+                width: calc( 100% );
+            }
+            .product .desc {
+                width: calc( 100% );
+            }
+            .product button {
+                width: calc( 100% );
+                margin-bottom: 1rem;
+            }
+            .order {
+                flex-wrap: wrap;
+            }
+            .payment_info {
+                border-top: 1px solid black;
+                padding-top: 1rem;
+                margin-top: 1rem;
+            }
+            .plus_and_minus {
+                margin-left: 0;
+            }
+            .modal {
+                max-width: 90%;
+            }
+        }
     </style>
-    <style data-tag="default-style-sheet">
-      html {
-        font-family: Inter;
-        font-size: 16px;
-      }
+    <script>
+        var $ = document.querySelector.bind( document );
+        var $$ = document.querySelectorAll.bind( document );
+        var url_params = new URLSearchParams( window.location.search );
+        var url_keys = url_params.keys();
+        var $_GET = {}
+        for ( var key of url_keys ) $_GET[ key ] = url_params.get( key );
+        var mempoolNetwork = "";
+        if ( $_GET[ "network" ] == "testnet" ) mempoolNetwork = $_GET[ "network" ] + "/";
+        var index = window.location.pathname.indexOf( "index.htm" ) > -1 ? window.location.pathname.indexOf( "index.htm" ):100000;
+        var extra_slash = window.location.pathname.substring( 0, index ).endsWith( "/" ) ? "":"/";
+        var port = "";
+        if ( window.location.port ) port = `:${window.location.port}`;
+        if ( !$_GET[ "privkey" ] && !$_GET[ "pubkey" ] ) window.location.href = window.location.href = window.location.protocol + "//" + window.location.hostname + port + window.location.pathname.substring( 0, index ) + extra_slash + "onboard.html";
+    </script>
+    <script>
+        sessionStorage.removeItem( "wallet_found_if_any" );
+        function makeSmallPrivkey() {
+            var privkey = bitcoinjs.ECPair.makeRandom().privateKey.toString( "hex" );
+            if ( privkey.substring( 0, 1 ) != "0" || privkey.substring( 1, 2 ) != "0" ) {
+                return makeSmallPrivkey();
+            }
+            return privkey;
+        }
+        function getCompressedPubkeyHexFromPrivkeyHex( privkeyhex ) {
+            return nobleSecp256k1.getPublicKey( privkeyhex, true );
+        }
+        function waitSomeSeconds( num ) {
+            var num = num.toString() + "000";
+            num = Number( num );
+            return new Promise( resolve => setTimeout( resolve, num ) );
+        }
+        function hexToBytes( hex ) {
+            return Uint8Array.from( hex.match( /.{1,2}/g ).map( ( byte ) => parseInt( byte, 16 ) ) );
+        }
+        function bytesToHex( bytes ) {
+            return bytes.reduce( ( str, byte ) => str + byte.toString( 16 ).padStart( 2, "0" ), "" );
+        }
+        function getData( url, content_type, apikey ) {
+            return new Promise( async function( resolve, reject ) {
+                function inner_get( url ) {
+                    var xhttp = new XMLHttpRequest();
+                    xhttp.open( "GET", url, true );
+                    if ( content_type ) {
+                        xhttp.setRequestHeader( `Content-Type`, content_type );
+                    }
+                    if ( apikey ) {
+                        xhttp.setRequestHeader( `X-Api-Key`, apikey );
+                    }
+                    xhttp.send();
+                    return xhttp;
+                }
+                var data = inner_get( url );
+                data.onerror = function( e ) {
+                    resolve( "error" );
+                }
+                async function isResponseReady() {
+                    return new Promise( function( resolve2, reject ) {
+                        if ( !data.responseText || data.readyState != 4 ) {
+                            setTimeout( async function() {
+                                var msg = await isResponseReady();
+                                resolve2( msg );
+                            }, 1 );
+                        } else {
+                            resolve2( data.responseText );
+                        }
+                    });
+                }
+                var returnable = await isResponseReady();
+                resolve( returnable );
+            });
+        }
+        async function postData( url, json, content_type = "", apikey = "" ) {
+            var rtext = "";
+            function inner_post( url, json, content_type = "", apikey = "" ) {
+                var xhttp = new XMLHttpRequest();
+                xhttp.open( "POST", url, true );
+                if ( content_type ) {
+                    xhttp.setRequestHeader( `Content-Type`, content_type );
+                }
+                if ( apikey ) {
+                    xhttp.setRequestHeader( `X-Api-Key`, apikey );
+                }
+                xhttp.send( json );
+                return xhttp;
+            }
+            var data = inner_post( url, json, content_type, apikey );
+            data.onerror = function( e ) {
+                rtext = "error";
+            }
+            async function isResponseReady() {
+                return new Promise( function( resolve, reject ) {
+                    if ( rtext == "error" ) {
+                        resolve( rtext );
+                    }
+                    if ( !data.responseText || data.readyState != 4 ) {
+                        setTimeout( async function() {
+                            var msg = await isResponseReady();
+                            resolve( msg );
+                        }, 50 );
+                    } else {
+                        resolve( data.responseText );
+                    }
+                });
+            }
+            var returnable = await isResponseReady();
+            return returnable;
+        }
+        async function pushBTCpmt( rawtx, network ) {
+            var txid = await postData( "https://mempool.space/" + network + "api/tx", rawtx );
+            return txid;
+        }
+        async function getBitcoinPriceFromCoinbase() {
+            var data = await getData( "https://api.coinbase.com/v2/prices/BTC-USD/spot" );
+            if ( data == "error" ) return 0;
+            var json = JSON.parse( data );
+            var price = json[ "data" ][ "amount" ];
+            return price;
+        }
 
-      body {
-        font-weight: 400;
-        font-style:normal;
-        text-decoration: none;
-        text-transform: none;
-        letter-spacing: normal;
-        line-height: 1.15;
-        color: var(--dl-color-gray-black);
-        background-color: var(--dl-color-gray-white);
+        async function getBitcoinPriceFromKraken() {
+            var data = await getData( "https://api.kraken.com/0/public/Ticker?pair=XBTUSD" );
+            if ( data == "error" ) return 0;
+            var json = JSON.parse( data );
+            var price = json[ "result" ][ "XXBTZUSD" ][ "a" ][ 0 ];
+            return price;
+        }
 
-      }
-    </style>
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&amp;display=swap"
-      data-tag="font"
-    />
-    <!--This is the head section-->
-    <!-- <style> ... </style> -->
-  </head>
-  <body>
-    <link rel="stylesheet" href="./style.css" />
-    <div>
-      <link href="./index.css" rel="stylesheet" />
+        async function getBitcoinPriceFromCoindesk() {
+            var data = await getData( "https://api.coindesk.com/v1/bpi/currentprice.json" );
+            if ( data == "error" ) return 0;
+            var json = JSON.parse( data );
+            var price = json[ "bpi" ][ "USD" ][ "rate_float" ];
+            return price;
+        }
 
-      <div class="home-container">
-        <header data-thq="thq-navbar" class="home-navbar">
-          <span class="home-logo"><img
-            alt="image"
-            src="public/logo-sats.svg"
-            class="home-image30"
-          /></span>
-          <div
-            data-thq="thq-navbar-nav"
-            data-role="Nav"
-            class="home-desktop-menu"
-          >
-            <nav
-              data-thq="thq-navbar-nav-links"
-              data-role="Nav"
-              class="home-nav"
-            >
-              <button class="home-button button-clean button"><a href="concern.html">Concern</a></button>
-              <button class="home-button1 button-clean button">Features</button>
-              <button class="home-button2 button-clean button">User-Journey</button>
-              <button class="home-button3 button-clean button">Team</button>
-              <!-- <button class="home-button4 button-clean button">Blog</button> -->
-            </nav>
-          </div>
-          <div data-thq="thq-navbar-btn-group" class="home-btn-group">
-            <div class="home-socials">
-              <button class="social button">
-                <img
-                  alt="image"
-                  src="public/Icons/twitter.svg"
-                  class="home-image"
-                />
-              </button>
-              <button class="social button">
-                <img
-                  alt="image"
-                  src="public/Icons/discord.svg"
-                  class="home-image01"
-                />
-              </button>
+        async function getBitcoinPriceFromGemini() {
+            var data = await getData( "https://api.gemini.com/v2/ticker/BTCUSD" );
+            if ( data == "error" ) return 0;
+            var json = JSON.parse( data );
+            var price = json[ "bid" ];
+            return price;
+        }
+
+        async function getBitcoinPriceFromCoinGecko() {
+                var data = await getData( "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&precision=2" );
+                if ( data == "error" ) return 0;
+                var json = JSON.parse( data );
+                var price = json[ "bitcoin" ][ "usd" ];
+                return price;
+        }
+
+        async function getBitcoinPrice() {
+            var prices = [];
+            var cbprice = await getBitcoinPriceFromCoinbase();
+            var kprice = await getBitcoinPriceFromKraken();
+            var cdprice = await getBitcoinPriceFromCoindesk();
+            var gprice = await getBitcoinPriceFromGemini();
+            var cgprice = await getBitcoinPriceFromCoinGecko();
+            prices.push( Number( cbprice ), Number( kprice ), Number( cdprice ), Number( gprice ), Number( cgprice ) );
+            prices.sort();
+            console.log( prices );
+            return prices[ 2 ];
+        }
+
+        function dollarsToSats( dollars ) {
+            dollars = Number( dollars );
+            var btc_price = sessionStorage[ "btc_price" ];
+            return Math.floor( Number( ( dollars / btc_price ).toFixed( 8 ) ) * 100000000 );
+        }
+
+        function satsToDollars( sats ) {
+            if ( sats >= 100000000 ) sats = sats * 10;
+            var bitcoin_price = sessionStorage[ "btc_price" ];
+            var value_in_dollars = Number( String( sats ).padStart( 8, "0" ).slice( 0,-9 ) + "." + String( sats ).padStart( 8, "0" ).slice( -9 ) ) * bitcoin_price;
+            return value_in_dollars;
+        }
+
+        function createQR( content ) {
+            var dataUriPngImage = document.createElement( "img" ),
+            s = QRCode.generatePNG( content, {
+                ecclevel: "M",
+                format: "html",
+                fillcolor: "#FFFFFF",
+                textcolor: "#000000",
+                margin: 4,
+                modulesize: 8,
+            });
+            dataUriPngImage.src = s;
+            dataUriPngImage.className = "qr_code";
+            return dataUriPngImage;
+        }
+
+        async function loopTilAddressReceivesMoney(address, network) {
+            let itReceivedMoney = false;
+            async function isDataSetYet(data_i_seek) {
+                return new Promise(async function (resolve, reject) {
+                    if (!data_i_seek) {
+                        setTimeout(async function () {
+                            if ( $( '.blank_view h2' ).innerText != "Checkout" || $( '.blank_view' ).style.display == "none" ) {
+                                resolve( "stopped" );
+                                return;
+                            }
+                            console.log("waiting for address to receive money...");
+                            try {
+                                itReceivedMoney = await addressOnceHadMoney(address, network);
+                            }catch(e){ }
+                            let msg = await isDataSetYet(itReceivedMoney);
+                            resolve(msg);
+                        }, 2000);
+                    } else {
+                        if ( data_i_seek == "error" ) {await waitSomeSeconds( 1 );data_i_seek = await loopTilAddressReceivesMoney(address, network);}
+                        resolve(data_i_seek);
+                    }
+                });
+            }
+
+            async function getTimeoutData() {
+                let data_i_seek = await isDataSetYet(itReceivedMoney);
+                return data_i_seek;
+            }
+
+            let returnable = await getTimeoutData();
+            return returnable;
+        }
+
+        async function addressOnceHadMoney( address, network ) {
+            var nonjson = await getData( "https://mempool.space/" + network + "api/address/" + address );
+            var json = JSON.parse( nonjson );
+            if ( json[ "chain_stats" ][ "tx_count" ] > 0 || json[ "mempool_stats" ][ "tx_count" ] > 0 ) {
+                return true;
+            }
+            return false;
+        }
+
+        async function addressReceivedMoneyInThisTx(address, network) {
+            let txid;
+            let vout;
+            let amt;
+            let nonjson = await getData("https://mempool.space/" + network + "api/address/" + address + "/txs");
+            if ( nonjson == "error" ) {
+                await waitSomeSeconds( 1 );
+                var info = await addressReceivedMoneyInThisTx(address, network);
+                return info;
+            } 
+            let json = JSON.parse(nonjson);
+            json.forEach(function (tx) {
+                tx["vout"].forEach(function (output, index) {
+                    if (output["scriptpubkey_address"] == address) {
+                        txid = tx["txid"];
+                        vout = index;
+                        amt = output["value"];
+                    }
+                });
+            });
+            return [txid, vout, amt];
+        }
+
+        function isValidJson( content ) {
+            if ( !content ) return;
+            try {  
+                var json = JSON.parse( content );
+            } catch ( e ) {
+                return;
+            }
+            return true;
+        }
+        function isValidAddress( address ) {
+            if ( $_GET[ "network" ] == "testnet" ) var network = bitcoinjs.networks.testnet; else var network = bitcoinjs.networks.mainnet;
+            try{
+                return ( typeof( bitcoinjs.address.toOutputScript( address, network ) ) == "object" );
+            } catch( e ) {
+                return;
+            }
+        }
+        var isValidUrl = urlString=> {
+            var urlPattern = new RegExp('^(https?:\\/\\/)?'+
+                '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|'+
+                '((\\d{1,3}\\.){3}\\d{1,3}))'+
+                '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*'+
+                '(\\?[;&a-z\[\\]\:\/\,\\d%_.~+=-]*)?'+
+                '(\\#[-a-z\\d_]*)?$','i');
+            return !!urlPattern.test( urlString );
+        }
+        function parseQuery( queryString ) {
+            var query = {};
+            var pairs = ( queryString[0] === '?' ? queryString.substr(1) : queryString ).split('&');
+            for ( var i=0; i<pairs.length; i++ ) {
+                var pair = pairs[i].split( '=' );
+                query[ decodeURIComponent( pair[0] ) ] = decodeURIComponent( pair[ 1 ] || '' );
+            }
+            return query;
+        }
+
+        function add2Pubkeys( pubkey1, pubkey2 ) {
+            return nobleSecp256k1.Point.fromHex( pubkey1 ).add( nobleSecp256k1.Point.fromHex( pubkey2 ) ).toHex();
+        }
+
+        function getCompressedPubkeyHexFromUncompressedPubkeyHex( pubkeyhex ) {
+            return bitcoinjs.ECPair.fromPublicKey( buffer.Buffer.from( pubkeyhex, "hex" ) ).publicKey.toString( "hex" );
+        }
+
+        function getNativeSegwitAddressFromPubkeyHex( pubkeyhex, network ) {
+            if ( !network ) network = bitcoinjs.networks.mainnet; else network = bitcoinjs.networks.testnet;
+            return bitcoinjs.payments.p2wpkh({ pubkey: buffer.Buffer.from( pubkeyhex, "hex" ), network: network }).address;
+        }
+
+        async function getAddressBalance( address, network ) {
+            var nonjson = await getData( "https://mempool.space/" + network + "api/address/" + address );
+            var json = JSON.parse( nonjson );
+            var fullincome = json[ "chain_stats" ][ "funded_txo_sum" ] + json[ "mempool_stats" ][ "funded_txo_sum" ];
+            var fulloutgo = json[ "chain_stats" ][ "spent_txo_sum" ] + json[ "mempool_stats" ][ "spent_txo_sum" ];
+            return fullincome - fulloutgo;
+        }
+        function addKeys( privkey1, privkey2 ) {
+            var combokey = ( ( BigInt( "0x" + privkey1 ) + BigInt( "0x" + privkey2 ) ) % BigInt( "0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f" ) ).toString( 16 );
+            combokey = ( "00" + combokey ).slice( -64 );
+            return combokey;
+        }
+        async function getUTXOs( privkey, network ) {
+            var pubkey = getCompressedPubkeyHexFromPrivkeyHex( privkey );
+            var address = getNativeSegwitAddressFromPubkeyHex( pubkey, network );
+            var esplorautxos = await getData( "https://blockstream.info/" + network + "api/address/" + address + "/utxo" );
+            esplorautxos = JSON.parse( esplorautxos );
+            var obj = [];
+            esplorautxos.forEach( function( item, index ) {
+                var utxo = {}
+                utxo[ "tx_id" ] = item[ "txid" ];
+                utxo[ "output_number" ] = item[ "vout" ];
+                utxo[ "amount" ] = item[ "value" ];
+                utxo[ "privkey" ] = privkey;
+                utxo[ "pubkey" ] = pubkey;
+                obj.push( utxo );
+            });
+            return( obj );
+        }
+        function craftTransaction( selected_utxos, to_amount, to_address, network ) {
+            if ( !network ) network = bitcoinjs.networks.mainnet; else network = bitcoinjs.networks.testnet;
+            if ( !to_amount ) {
+                return;
+            }
+            var psbt = new bitcoinjs.Psbt({ network: network });
+            var i; for ( i=0; i<selected_utxos.length; i++ ) {
+                psbt.addInput({
+                    hash: selected_utxos[ i ][ "tx_id" ],
+                    index: selected_utxos[ i ][ "output_number" ],
+                    witnessUtxo: {
+                        script: buffer.Buffer.from( '0014' + bitcoinjs.crypto.ripemd160( bitcoinjs.crypto.sha256( buffer.Buffer.from( selected_utxos[ i ][ "pubkey" ], "hex" ) ) ).toString( 'hex' ), 'hex' ),
+                        value: selected_utxos[ i ][ "amount" ],
+                    },
+                });
+            }
+            psbt.addOutput({
+                address: to_address,
+                value: to_amount,
+            });
+            var keyPairSenders = [];
+            var i; for ( i=0; i<selected_utxos.length; i++ ) {
+                keyPairSenders.push( bitcoinjs.ECPair.fromPrivateKey( buffer.Buffer.from( selected_utxos[ i ][ "privkey" ], "hex" ), network ) );
+            }
+            var i; for ( i=0; i<keyPairSenders.length; i++ ) {
+                psbt.signInput( i, keyPairSenders[ i ] );
+            }
+            var i; for ( i=0; i<keyPairSenders.length; i++ ) {
+                psbt.validateSignaturesOfInput( i );
+            }
+            psbt.finalizeAllInputs();
+            return psbt.extractTransaction().toHex();
+        }
+        async function getThreeFeeRates( network ) {
+            var fees = await getData("https://mempool.space/" + network + "api/v1/fees/recommended");
+            fees = JSON.parse(fees);
+            var array = [ fees["minimumFee"], fees["hourFee"], fees["fastestFee"] ];
+            return array;
+        }
+        function modalVanish() {
+            $( ".black-bg" ).style.display = "none";
+            $( ".modal" ).style.display = "none";
+        }
+        function showModal( content, block_til_clear ) {
+            if ( block_til_clear ) var fn = `modalVanish();sessionStorage[ 'modal_cleared' ] = true;`; else var fn = `modalVanish();`;
+            $( ".modal" ).innerHTML = `<div style="position: absolute;right: 1rem;top: 0.5rem;font-size: 2rem; cursor: pointer;" onclick="${fn}">&times;</div>`;
+            $( ".modal" ).innerHTML += `<div style="overflow-y: scroll; max-height: 80vh; margin-top: 1.5rem;">${content}</div>`;
+            $( ".black-bg" ).style.display = "block";
+            $( ".modal" ).style.display = "block";
+        }
+        function showToast( content ) {
+            var x = $( '.toast' );
+            x.innerHTML = content;
+            x.style.bottom = "2rem";
+            x.style.opacity = 1;
+            setTimeout(function(){
+                x.style.bottom = "0px";
+                x.style.opacity = 0;
+            }, 2000);
+        }
+        async function getNote( item ) {
+            async function isNoteSetYet( note_i_seek ) {
+                return new Promise( function( resolve, reject ) {
+                    if ( !note_i_seek ) {
+                        setTimeout( async function() {
+                            var msg = await isNoteSetYet( sessionStorage[ item ] );
+                            resolve( msg );
+                        }, 100 );
+                    } else {
+                        resolve( note_i_seek );
+                    }
+                });
+            }
+            async function getTimeoutData() {
+                var note_i_seek = await isNoteSetYet( sessionStorage[ item ] );
+                return note_i_seek;
+            }
+            var returnable = await getTimeoutData();
+            return returnable;
+        }
+        async function makeLNWallet( identifier ) {
+            identifier = identifier.substring( 0, 15 );
+            var mywallet = await getData( "https://legend.lnbits.com/wallet?nme=" + identifier );
+            var key1prep = mywallet.split( "Wallet ID:" );
+            wallet_id = key1prep[ 1 ].substring( 14, 46 );
+            var key2prep = mywallet.split( "Admin key:" );
+            adminkey = key2prep[ 1 ].substring( 14, 46 );
+            var key3prep = mywallet.split( "Invoice/read key:" );
+            readkey = key3prep[ 1 ].substring( 14, 46 );
+            var key4prep = mywallet.split( "<qrcode" );
+            wallet_url = key4prep[ 2 ].split( "'" )[ 1 ] + key4prep[ 2 ].split( "'" )[ 3 ];
+            wallet_obj = {}
+            wallet_obj[ "wallet_id" ] = wallet_id;
+            wallet_obj[ "adminkey" ] = adminkey;
+            wallet_obj[ "readkey" ] = readkey;
+            wallet_obj[ "wallet_url" ] = wallet_url;
+            return wallet_obj;
+        }
+        function getNumberOfWithdrawalsAndAmounts( sats, num = 0, array = [] ) {
+            if ( sats > 10000 ) {
+                num = num + 1;
+                withdrawable = sats - Math.floor( sats * .01 );
+                array.push( withdrawable );
+                return getNumberOfWithdrawalsAndAmounts( Math.floor( sats * .01 ), num, array );
+            } else if ( sats >= 101 ) {
+                array.push( sats - 100 );
+            }
+            //if they have 100 sats or less than do what is necessary to bring them down to 5
+            if ( sats < 101 && sats > 7 ) {
+                array.push( sats - 5 );
+            }
+            return array;
+        }
+        async function getLNBalance() {
+            var wallet_url = JSON.parse( localStorage[ "wallet_info" ] )[ "wallet_url" ];
+            var readkey = JSON.parse( localStorage[ "wallet_info" ] )[ "readkey" ];
+            var domain = wallet_url.substring( 0, wallet_url.indexOf( "/wallet" ) );
+            var url = domain + "/api/v1/wallet";
+            var winfo = await getData( url, "application/json", readkey )
+            winfo = JSON.parse( winfo );
+            var balance = Number( Math.floor( winfo[ "balance" ] / 1000 ) );
+            return balance;
+        }
+        var hash50Times = ( hex, num=0 ) => {
+            hex = bitcoinjs.crypto.sha256( hexToBytes( hex ) ).toString( "hex" );
+            num = num + 1;
+            if ( num >= 50 ) return hex;
+            return hash50Times( hex, num );
+        }
+    </script>
+    <script>
+        var store_id = [];
+        var expected_products_num = 0;
+        var products = [];
+        var private_keys = [];
+        var available_utxos = [];
+        var ln_domain = null;
+        var ln_readkey = null;
+        var stores_auth_privkey = null;
+        var stores_auth_pubkey;
+        var waiting_for_auth = false;
+        var auth_sub = null;
+        var relays_i_connected_to = [];
+        if ( localStorage[ "shipped_orders" ] ) var shipped_orders = JSON.parse( localStorage[ "shipped_orders" ] ); else var shipped_orders = [];
+        sessionStorage.clear();
+        var sales = [];
+        var { getSharedSecret, schnorr, utils } = nobleSecp256k1;
+        var crypto  = window.crypto;
+        var getRand = size => crypto.getRandomValues(new Uint8Array(size));
+        var sha256  = bitcoinjs.crypto.sha256;
+        if ( $_GET[ "privkey" ] ) var privKey = $_GET[ "privkey" ]; else var privKey = makeSmallPrivkey();
+        var pubKey  = getCompressedPubkeyHexFromPrivkeyHex( privKey );
+        var original_pubkey = pubKey;
+        pubKey      = pubKey.substring( 2 );
+        var auth_privkey = hash50Times( privKey );
+        var auth_pubkey = getCompressedPubkeyHexFromPrivkeyHex( auth_privkey ).substring( 2 );
+        var signedCheckinEvent = null;
+        var make_checkin_event = async () => {
+            checkin_event = {
+                "content"    : "",
+                "created_at" : Math.floor( Date.now() / 1000 ),
+                "kind"       : 42198,
+                "tags"       : [],
+                "pubkey"     : pubKey,
+            }
+            signedCheckinEvent = await getSignedEvent(checkin_event, privKey);
+        }
+        // console.log( pubKey );
+        if ( $_GET[ "relay" ] ) var relay = $_GET[ "relay" ]; else var relay = "wss://nostrue.com";
+        if ( $_GET[ "relays" ] ) {
+            var relays = JSON.parse( decodeURI( $_GET[ "relays" ] ) );
+            relay = relays[ 0 ];
+        } else {
+            var relays = [relay, "wss://nostr.noones.com", "wss://nos.lol"];
+        }
+        var relays_obj = {}
+        // var socket = new WebSocket( relay );
+        async function handleMessage( message ) {
+            var [ type, subId, event ] = JSON.parse( message.data );
+            var { kind, content } = event || {}
+            if ( ( !event || event === true ) && type != "EOSE" ) return;
+            if ( subId.startsWith( "00" ) ) {
+                if ( kind === 4 ) {
+                    if ( $_GET[ "pubkey" ] ) {
+                        var now = Math.floor( Date.now() / 1000 );
+                        store_meta.setState( () => {
+                            if ( event.created_at > store_meta.last_purchase ) {
+                                store_meta.last_purchase = event.created_at;
+                            }
+                            if ( !store_meta.recent_orders.includes( event.id ) && !( event.created_at < now - ( 3600 * 24 * 7 ) ) ) {
+                                store_meta.recent_orders.push( event.id );
+                                if ( !store_meta.lifetime_orders.includes( event.id ) ) store_meta.lifetime_orders.push( event.id );
+                            }
+                            if ( store_meta.lifetime_orders.includes( event.id ) || store_meta.recent_orders.includes( event.id ) ) return;
+                            store_meta.lifetime_orders.push( event.id );
+                        });
+                    } else {
+                        var is_seen = false;
+                        sales.forEach( function( sale ) {
+                            if ( sale[ 2 ] == event.id ) is_seen = true;
+                        })
+                        if ( is_seen ) return;
+                        content = await decrypt(privKey, event.pubkey, content);
+                        if ( !isValidJson( content ) ) return;
+                        content = JSON.parse( content );
+                        if ( content.length != 2 ) return;
+                        if ( !content[ 0 ] ) return;
+                        if ( !content[ 1 ] ) return;
+                        if ( typeof content[ 0 ] != "object" ) return;
+                        if ( typeof content[ 1 ] != "object" ) return;
+                        if ( !content[ 0 ][ "whisper_key" ] && !content[ 0 ][ "pmthash" ] ) return;
+                        if ( !content[ 1 ][ 0 ] ) return;
+                        if ( typeof content[ 1 ][ 0 ] != "object" ) return;
+                        if ( !content[ 1 ][ 0 ][ "item" ] ) return;
+                        if ( !( "price" in content[ 1 ][ 0 ] ) ) return;
+                        if ( typeof content[ 1 ][ 0 ][ "price" ] != "number" ) return;
+                        if ( content[ 1 ][ 0 ][ "price" ] < 0 ) return;
+                        //the following section only applies after I added product
+                        //ids to purchase messages
+                        if ( event.created_at > 1690920685 ) {
+                            if ( !( "id" in content[ 1 ][ 0 ] ) ) return;
+                        }
+                        //if an order had a price of zero then it was a donation
+                        //but there is code down in the section that adds sales
+                        //to the "manage sales" page that does a sanity check by
+                        //ignoring orders that have a 0 balance and say they are
+                        //not yet shipped -- so here I change the shipped status
+                        //of 0-value orders to "shipped" so that they will still
+                        //show up on the manage sales page
+                        var shipped = 0;
+                        if ( content[ 1 ][ 0 ][ "price" ] == 0 ) shipped = 1;
+                        if ( !content[ 1 ][ 0 ][ "shipping_zone" ] ) return;
+                        sales.push( [ ...content, event.id, shipped ] );
+                        if ( "whisper_key" in content[ 0 ] ) {
+                            var whisper_key = content[ 0 ][ "whisper_key" ];
+                            var privkey = addKeys( privKey, whisper_key );
+                            var combokey = getCompressedPubkeyHexFromPrivkeyHex( privkey );
+                            var whisper_address = getNativeSegwitAddressFromPubkeyHex( combokey, mempoolNetwork );
+                            var current_utxos = await getUTXOs( privkey, mempoolNetwork );
+                            var current_balance = 0;
+                            current_utxos.forEach( function( utxo ) {
+                                current_balance = current_balance + Number( utxo[ "amount" ] );
+                            });
+                        } else {
+                            var current_balance = 1;
+                        }
+                        if ( !shipped_orders.includes( event.id ) && current_balance ) {
+                            $( '.sales_count' ).innerText = Number( $( '.sales_count' ).innerText ) + 1;
+                        }
+                    }
+                }
+                // console.log('content:', content);
+                if ( kind === 12196 ) {
+                    if ( !isValidJson( content ) ) return;
+                    if ( event.created_at <= store_id[ 1 ] ) return;
+                    if ( event.id == store_id[ 0 ] ) return;
+                    store_id[ 0 ] = event.id;
+                    store_id[ 1 ] = event.created_at;
+                    expected_products_num = event.tags[ 0 ].length - 1;
+                    content = JSON.parse( content );
+                    if ( $_GET[ "pubkey" ] && "whisper_address_linking_key" in content ) {
+                        whisper_data[ "linking_pubkey" ] = content[ "whisper_address_linking_key" ];
+                        whisper_data[ "whisper_key" ] = makeSmallPrivkey();
+                        whisper_data[ "whisper_pubkey" ] = getCompressedPubkeyHexFromPrivkeyHex( whisper_data[ "whisper_key" ] );
+                        whisper_data[ "combokey" ] = getCompressedPubkeyHexFromUncompressedPubkeyHex( add2Pubkeys( whisper_data[ "linking_pubkey" ], whisper_data[ "whisper_pubkey" ] ) );
+                        whisper_data[ "whisper_address" ] = getNativeSegwitAddressFromPubkeyHex( whisper_data[ "combokey" ], mempoolNetwork );
+                    }
+                    if ( "lnbits_secret" in content ) {
+                        if ( $_GET[ "privkey" ] ) localStorage[ "wallet_info" ] = decrypt( privKey, pubKey, content[ "lnbits_secret" ] );
+                    }
+                    if ( "lnbits_public" in content ) {
+                        if ( $_GET[ "pubkey" ] || $_GET[ "privkey" ] ) {
+                            ln_domain = content[ "lnbits_public" ][ "domain" ];
+                            ln_readkey = content[ "lnbits_public" ][ "readkey" ];
+                        }
+                    }
+                    if ( "store_name" in content ) {
+                        if ( $( '.store_name' ) ) $( '.store_name' ).value = content[ "store_name" ];
+                        title.setState( () => title.name = content[ "store_name" ] );
+                    }
+                    $( '.title' ).style.display = "flex";
+                    if ( $_GET[ "pubkey" ] ) $( '.view_store' ).style.display = "block";
+                    if ( $_GET[ "privkey" ] ) {
+                        $( '.name_instructions' ).innerText = "Manage name";
+                        $( '.product_instructions' ).innerText = "Manage products";
+                        $( '.public_link' ).style.display = "inline";
+                        $( '.connect_nostr' ).style.display = "inline";
+                        var port = "";
+                        if ( window.location.port ) port = `:${window.location.port}`;
+                        $( '.public_link' ).href = window.location.protocol + "//" + window.location.hostname + port + window.location.pathname + `?pubkey=${original_pubkey}&relays=${encodeURI( JSON.stringify( relays ) )}`;
+                    }
+                    products = [];
+                    $( '.store_products' ).innerHTML = ``;
+                    // if ( $( '.sales_count' ) ) $( '.sales_count' ).innerText = 0;
+                    var array = event.tags[ 0 ];
+                    array.splice( 0, 1 );
+                    // console.log( array );
+                    var subId   = ( "01" + bitcoinjs.ECPair.makeRandom().privateKey.toString( "hex" ) ).substring( 0, 16 );
+                    var filter  = { ids: array }
+                    var subscription = [ "REQ", subId, filter ];
+                    if ( "auth_privkey" in content ) {
+                        stores_auth_privkey = content[ "auth_privkey" ];
+                        stores_auth_pubkey = getCompressedPubkeyHexFromPrivkeyHex( content[ "auth_privkey" ] ).substring( 2 );
+                        var filter2 = { kinds: [ 4 ], "#p": [ stores_auth_pubkey ] }
+                        subscription = [ "REQ", subId, filter, filter2 ];
+                        auth_sub = subscription;
+                    }
+                    if ( $_GET[ "privkey" ] ) {
+                        $( '.product' ).children[ 0 ].value = "";
+                        $( '.product' ).children[ 1 ].value = "";
+                        $( '.product' ).children[ 2 ].value = "";
+                        $( '.product' ).children[ 3 ].value = "--- Shipping zone ---";
+                        $( '.product' ).children[ 4 ].value = "";
+                    }
+                    Object.keys( relays_obj ).forEach( function( relay ) {
+                        relays_obj[ relay ].send( JSON.stringify( subscription ) );
+                    });
+                }
+                if ( type == "EOSE" ) {
+                    if ( !$_GET[ "privkey" ] ) return;
+                    sessionStorage[ "wallet_found_if_any" ] = true;
+                }
+                if ( kind === 42197 && $_GET[ "privkey" ] ) {
+                    if ( !shipped_orders.includes( event.tags[ 0 ][ 1 ] ) ) {
+                        $( '.sales_count' ).innerText = Number( $( '.sales_count' ).innerText ) - 1;
+                        shipped_orders.push( event.tags[ 0 ][ 1 ] );
+                        localStorage.shipped_orders = JSON.stringify( shipped_orders );
+                    }
+                }
+                if ( kind === 42197 && $_GET[ "pubkey" ] ) {
+                    var now = Math.floor( Date.now() / 1000 );
+                    store_meta.setState( () => {
+                        if ( event.created_at > store_meta.last_shipment ) {
+                            store_meta.last_shipment = event.created_at;
+                        }
+                        if ( store_meta.shipment_ids.includes( event.id ) ) return;
+                        if ( event.created_at < now - ( 3600 * 24 * 7 ) ) return;
+                        store_meta.shipment_ids.push( event.id );
+                    });                    
+                }
+                if ( kind === 42198 && $_GET[ "pubkey" ] ) {
+                    store_meta.setState( () => {
+                        if ( store_meta.checkin_ids.includes( event.id ) ) return;
+                        if ( store_meta.checkin_ids.length > 6 ) return;
+                        store_meta.checkin_ids.push( event.id );
+                    });
+                }
+            }
+            if ( subId.startsWith( "01" ) ) {
+                if ( kind === 4 ) {
+                    var recipient = null;
+                    var i; for ( i=0; i<event.tags.length; i++ ) {
+                        if ( event.tags[ i ] && event.tags[ i ][ 1 ] ) {
+                            if ( event.tags[ i ][ 0 ] != "p" ) continue;
+                            recipient = event.tags[ i ][ 1 ];
+                            break;
+                        }
+                    }
+                    if ( recipient === stores_auth_pubkey ) {
+                        content = await decrypt( stores_auth_privkey, event.pubkey, content );
+                        var sig_part = content.substring( 0, content.indexOf( "|" ) );
+                        var rel_part = content.substring( content.indexOf( "|" ) + 1 );
+                        var sig = base64ToHex( sig_part );
+                        var users_relay = hexToText( base64ToHex( rel_part ) );
+                        //check if sender knows the store private key
+                        var pubkey = $_GET[ "pubkey" ] || original_pubkey;
+                        var sig_is_good = await nobleSecp256k1.schnorr.verify( sig, pubkey.substring( 2 ), pubkey.substring( 2 ) );
+                        if ( !sig_is_good ) return;
+                        console.log( "content:", content );
+                        console.log( "users relay:", users_relay );
+                        var profile = await getMeta( event.pubkey, users_relay );
+                        if ( !isValidJson( profile ) ) return;
+                        store_meta.setState( () => {
+                            store_meta.owner_pub = event.pubkey;
+                            store_meta.owner_rel = users_relay;
+                            store_meta.owner_nym = JSON.parse( profile )[ "name" ];
+                            store_meta.owner_pic = JSON.parse( profile )[ "picture" ];
+                        });
+                    }
+                    if ( waiting_for_auth && recipient === stores_auth_pubkey ) {
+                        // rebroadcast the user's auth message to all their relays
+                        Object.keys( relays_obj ).forEach( function( relay ) {
+                            relays_obj[ relay ].send( JSON.stringify( [ "EVENT", event ] ) );
+                        });
+                        modalVanish();
+                        waiting_for_auth = false;
+                        showModal( `Success, your store is now authenticated with your regular nostr account. If the "Store Owner" badge doesn't show up on the frontend, resubmit your store by clicking the "Submit" button on your backend.` );
+                    }
+                }
+                if ( kind === 42196 ) {
+                    var content = JSON.parse( content );
+                    var is_seen = false;
+                    products.forEach( function( item ) {
+                        if ( item[ "id" ] == event.id ) is_seen = true;
+                    });
+                    if ( is_seen ) return;
+                    products.push( {"id": event.id, content, "timestamp": event.created_at} );
+                    products.sort( ( a, b ) => {
+                        return a.timestamp - b.timestamp;
+                    });
+                    if ( products.length < expected_products_num ) return;
+                    $( '.products_wrapper' ).innerHTML = `<div class="product"><input placeholder="product name"><input placeholder="image url"><textarea placeholder="description" class="desc"></textarea><select placeholder="shipping zone"><option>--- Shipping zone ---</option><option>Free (digital)</option><option>Worldwide</option><option>Europe</option><option>Australia</option><option>Austria</option><option>Belgium</option><option>Brazil</option><option>Canada</option><option>Denmark</option><option>Finland</option><option>France</option><option>Germany</option><option>Greece</option><option>Hong Kong</option><option>Hungary</option><option>Ireland</option><option>Indonesia</option><option>Israel</option><option>Italy</option><option>Japan</option><option>Kazakhstan</option><option>Korea</option><option>Luxembourg</option><option>Malaysia</option><option>Mexico</option><option>Netherlands</option><option>New Zealand</option><option>Norway</option><option>Poland</option><option>Portugal</option><option>Russia</option><option>Saudi Arabia</option><option>Singapore</option><option>Spain</option><option>Sweden</option><option>Switzerland</option><option>Thailand</option><option>Turkey</option><option>Ukraine</option><option>United Kingdom</option><option>United States</option><option>Vietnam</option><option>China</option></select><input placeholder="usd price (e.g. 5.99)" class="price" type="number" step="0.01" min="0"><div style="margin-bottom: 1rem;"><input type="checkbox" style="width: 1rem;vertical-align: middle;margin-bottom: auto;" id="no_price_0"><label for="no_price_0" style="display: inline;vertical-align: middle;">Let users set the price</label></div><button class="preview">Product preview</button><button class="plus_and_minus">Add another product</button></div>`;
+                    $( '.plus_and_minus' ).onclick = () => {
+                        var product = document.createElement( "div" );
+                        product.className = "product";
+                        var num = Math.floor( Math.random() * 10000000 );
+                        product.innerHTML = `<input placeholder="product name"><input placeholder="image url"><textarea placeholder="description" class="desc"></textarea><select placeholder="shipping zone"><option>--- Shipping zone ---</option><option>Free (digital)</option><option>Worldwide</option><option>Europe</option><option>Australia</option><option>Austria</option><option>Belgium</option><option>Brazil</option><option>Canada</option><option>Denmark</option><option>Finland</option><option>France</option><option>Germany</option><option>Greece</option><option>Hong Kong</option><option>Hungary</option><option>Ireland</option><option>Indonesia</option><option>Israel</option><option>Italy</option><option>Japan</option><option>Kazakhstan</option><option>Korea</option><option>Luxembourg</option><option>Malaysia</option><option>Mexico</option><option>Netherlands</option><option>New Zealand</option><option>Norway</option><option>Poland</option><option>Portugal</option><option>Russia</option><option>Saudi Arabia</option><option>Singapore</option><option>Spain</option><option>Sweden</option><option>Switzerland</option><option>Thailand</option><option>Turkey</option><option>Ukraine</option><option>United Kingdom</option><option>United States</option><option>Vietnam</option><option>China</option></select><input placeholder="usd price (e.g. 5.99)" class="price" type="number" step="0.01" min="0"><div style="margin-bottom: 1rem;"><input type="checkbox" style="width: 1rem;vertical-align: middle;margin-bottom: auto;" id="no_price_${num}"><label for="no_price_${num}" style="display: inline;vertical-align: middle;">Let users set the price</label></div>`;
+                        product.getElementsByTagName( "label" )[ 0 ].previousElementSibling.onclick = () => {
+                            var elem = product.getElementsByTagName( "label" )[ 0 ].previousElementSibling;
+                            if ( elem.checked ) {
+                                elem.parentElement.previousElementSibling.disabled = true;
+                                elem.parentElement.previousElementSibling.style.backgroundColor = "#ccc";
+                                elem.parentElement.previousElementSibling.value = "";
+                            } else {
+                                elem.parentElement.previousElementSibling.disabled = false;
+                                elem.parentElement.previousElementSibling.style.backgroundColor = "transparent";
+                            }
+                        }
+                        var button = document.createElement( "button" );
+                        button.innerText = "Product preview";
+                        button.onclick = (e) => {
+                            var checked = e.target.parentElement.children[ 5 ].children[ 0 ].checked;
+                            var price = !checked ? Number( e.target.parentElement.children[ 4 ].value ):`Set an amount<div>$<input type="number" step="0.01" min="0" style="width: 90%;"></div>`;
+                            if ( typeof price == "number" ) price = "$" + price.toFixed( 2 );
+                            var html = `
+                                <h2>Preview pane</h2>
+                                <div class="store_product" style="background-color: lightgrey; border: 1px solid black; border-radius: 1rem; width: 100%; max-width: 13rem; text-align: center; padding: 1rem; word-wrap: break-word;">
+                                    <img src="${e.target.parentElement.children[ 1 ].value}" style="border: 1px solid black; width: 100%; max-width: 10rem; margin: auto;">
+                                    <div>${e.target.parentElement.children[ 0 ].value}</div>
+                                    <div>${price}</div>
+                                    <button>View product</button>
+                                    <button class="add_to_cart">Add to cart</button>
+                                </div>
+                            `;
+                            $( '.preview_pane' ).innerHTML = html;
+                            $( '.preview_pane' ).style.display = "block";
+                        }
+                        product.append( button );
+                        //append an input and a minus button
+                        var button = document.createElement( "button" );
+                        button.className = "plus_and_minus";
+                        button.innerText = "Remove this product";
+                        button.onclick = () => button.parentElement.remove();
+                        product.append( button );
+                        $( '.products' ).insertBefore( product, $( '.products' ).lastElementChild );
+                        $$( '.price' ).forEach( function( item, index ) {
+                            item.onchange = () => {
+                                item.onkeyup = ( e ) => {
+                                    if ( e.key === "$" ) {
+                                        alert( "Error, please do not include a dollar sign. Just type 5.00 or similar." );
+                                        $$( '.price' )[ index ].blur();
+                                        $$( '.price' )[ index ].value = "";
+                                        return;
+                                    }
+                                }
+                                $$( '.price' )[ index ].value = Number( $$( '.price' )[ index ].value ).toFixed(2);
+                                if ( $$( '.price' )[ index ].value == "0.00" || $$( '.price' )[ index ].value == "0" ) $$( '.price' )[ index ].value = "";
+                            }
+                        });
+                    }
+                    var i; for ( i=0; i<expected_products_num - 1; i++ ) {
+                        $$( '.plus_and_minus' )[ $$( '.plus_and_minus' ).length - 1 ].click();
+                    }
+                    $( '.store_products' ).innerHTML = ``;
+                    var internal_products = JSON.parse( JSON.stringify( products ) );
+                    internal_products.reverse();
+                    var i; for ( i=0; i<internal_products.length; i++ ) {
+                        var product = internal_products[ i ];
+                        if ( $_GET[ "privkey" ] ) {
+                            var index = expected_products_num - i - 1;
+                            $$( '.product' )[ index ].setAttribute( "data-id", product.id );
+                            $$( '.product' )[ index ].children[ 0 ].value = product.content.product;
+                            $$( '.product' )[ index ].children[ 1 ].value = product.content.image;
+                            $$( '.product' )[ index ].children[ 2 ].value = product.content.description;
+                            $$( '.product' )[ index ].children[ 3 ].value = product.content.shipping_zone;
+                            if ( product.content.price == "custom" ) {
+                                $$( '.product' )[ index ].children[ 5 ].children[ 0 ].click();
+                            } else {
+                                $$( '.product' )[ index ].children[ 4 ].value = ( product.content.price / 100 ).toFixed( 2 );
+                            }
+                            if ( i == internal_products.length - 1 ) return; else continue;
+                        }
+                        if ( product.content[ "price" ] != "custom" ) var price = product.content[ "price" ] / 100; else price = "custom";
+                        var existing_num = $$( '.store_product' ).length;
+                        var html = `
+                            <div class="store_product" data-id="${product.id}" style="background-color: lightgrey; border: 1px solid black; border-radius: 1rem; width: 100%; max-width: 13rem; text-align: center; padding: 1rem; word-wrap: break-word; margin-bottom: 1rem;">
+                                <img class="product_image" style="border: 1px solid black; width: 100%; max-width: 10rem; margin: auto;">
+                                <div class="product_name"></div>
+                                <div class="product_price"></div>
+                                <div style="display: none;" class="shipping_zone"></span></div>
+                                <button class="view_product_btn">View product</button>
+                                <button class="add_to_cart" data-num="${i}">Add to cart</button>
+                            </div>
+                        `;
+                        $( '.store_products' ).innerHTML += html;
+                        $$( '.store_product .product_image' )[ existing_num ].src = product.content.image;
+                        $$( '.store_product .product_name' )[ existing_num ].innerText = product.content.product;
+                        if ( price == "custom" ) {
+                            $$( '.store_product .product_price' )[ existing_num ].innerHTML = `Set an amount<div>$<input type="number" step="0.01" min="0" style="width: 90%;"></div>`;
+                        } else {
+                            $$( '.store_product .product_price' )[ existing_num ].innerText = "$" + price.toFixed( 2 );
+                        }
+                        $$( '.store_product .shipping_zone' )[ existing_num ].innerText = product.content.shipping_zone;
+                        $$( '.add_to_cart' ).forEach( function( item ) {
+                            item.onclick = (e) => {
+                                // console.log( content.price, e.target.parentElement.getElementsByClassName( "product_price" )[ 0 ].innerText.replace( "$", "" ), ( Number( e.target.parentElement.getElementsByClassName( "product_price" )[ 0 ].innerText.replace( "$", "" ) ) * 100 ) )
+                                $( '.minicart_item_count' ).innerText = Number( $( '.minicart_item_count' ).innerText ) + 1;
+                                price = internal_products[ Number( e.target.getAttribute( "data-num" ) ) ].content.price;
+                                cart.push({
+                                    id: e.target.parentElement.getAttribute( "data-id" ),
+                                    item: e.target.parentElement.getElementsByClassName( "product_name" )[ 0 ].innerText,
+                                    price: price != "custom" ? ( Number( e.target.parentElement.getElementsByClassName( "product_price" )[ 0 ].innerText.replace( "$", "" ) ) * 100 ) : Number( e.target.parentElement.getElementsByClassName( "product_price" )[ 0 ].getElementsByTagName( "input" )[ 0 ].value ) * 100,
+                                    shipping_zone: e.target.parentElement.getElementsByClassName( "shipping_zone" )[ 0 ].innerText,
+                                });
+                                showToast( "added to cart" );
+                            }
+                        });
+                        $$( '.view_product_btn' ).forEach( function( item, index ) {
+                            item.onclick = (e) => {
+                                var c2 = internal_products[ index ][ "content" ];
+                                var pid = internal_products[ index ][ "id" ];
+                                $( '.store_products' ).style.display = "none";
+                                $( '.blank_view' ).innerHTML = `
+                                    <div class="viewed_product">
+                                        <div style="display: flex; align-items: center; cursor: pointer; cursor: pointer;" onclick="$( '.blank_view' ).style.display = 'none';$( '.store_products' ).style.display = 'flex';"><div style="display: flex; align-items: center; font-weight: bold; font-size: 3rem; margin-right: 0.5rem;">⇦</div><div style="font-weight: bold; font-size: 1.5rem;">Back</div></div>
+                                        <div style="font-weight: bold;">Product</div>
+                                        <div><span class="product_name"></span></div><br>
+                                        <img class="product_image" style="border: 1px solid black; width: 100%; margin: auto;"><br><br>
+                                        <div style="font-weight: bold;">Price</div>
+                                        <div class="product_price"></div><br>
+                                        <div style="font-weight: bold;">Description</div>
+                                        <div class="product_description"></div><br>
+                                        <div style="font-weight: bold;">Ships to</div>
+                                        <div class="shipping_zone"></div><br>
+                                        <button class="add_to_cart">Add to cart</button>
+                                    </div>
+                                `;
+                                $( '.viewed_product' ).setAttribute( "data-id", pid );
+                                $( '.viewed_product .product_name' ).innerText = c2.product;
+                                $( '.viewed_product .product_image' ).src = c2.image;
+                                if ( c2.price == "custom" ) {
+                                    $( '.viewed_product .product_price' ).innerHTML = `Set an amount<div>$<input type="number" step="0.01" min="0" style="width: 90%;"></div>`;
+                                } else {
+                                    $( '.viewed_product .product_price' ).innerText = "$" + ( c2.price / 100 ).toFixed( 2 );
+                                }
+                                $( '.viewed_product .product_description' ).innerText = c2.description;
+                                $( '.viewed_product .shipping_zone' ).innerText = c2.shipping_zone;
+                                $( '.blank_view' ).style.display = "block";
+                                $$( '.add_to_cart' ).forEach( function( item ) {
+                                    item.onclick = (e) => {
+                                        $( '.minicart_item_count' ).innerText = Number( $( '.minicart_item_count' ).innerText ) + 1;
+                                        cart.push({
+                                            id: e.target.parentElement.getAttribute( "data-id" ),
+                                            item: e.target.parentElement.getElementsByClassName( "product_name" )[ 0 ].innerText,
+                                            price: c2.price != "custom" ? ( Number( e.target.parentElement.getElementsByClassName( "product_price" )[ 0 ].innerText.replace( "$", "" ) ) * 100 ) : Number( e.target.parentElement.getElementsByClassName( "product_price" )[ 0 ].getElementsByTagName( "input" )[ 0 ].value ) * 100,
+                                            shipping_zone: e.target.parentElement.getElementsByClassName( "shipping_zone" )[ 0 ].innerText,                                });
+                                        $( '.blank_view' ).style.display = "none";
+                                        $( '.store_products' ).style.display = "flex";
+                                        showToast( "added to cart" );
+                                    }
+                                });
+                            }
+                        });
+                    }
+                }
+            }
+        }
+        async function getSignedEvent(event, privateKey) {
+            var eventData = JSON.stringify([
+                0,                    // Reserved for future use
+                event['pubkey'],        // The sender's public key
+                event['created_at'],    // Unix timestamp
+                event['kind'],        // Message “kind” or type
+                event['tags'],        // Tags identify replies/recipients
+                event['content']        // Your note contents
+            ])
+            event.id  = sha256( eventData ).toString( 'hex' );
+            event.sig = await schnorr.sign( event.id, privateKey );
+            return event;
+        }
+        function hexToBytes( hex ) {
+            return Uint8Array.from( hex.match( /.{1,2}/g ).map( ( byte ) => parseInt( byte, 16 ) ) );
+        }
+
+        function bytesToHex( bytes ) {
+            return bytes.reduce( ( str, byte ) => str + byte.toString( 16 ).padStart( 2, '0' ), '' );
+        }
+        function base64ToHex( str ) {
+            var raw = atob( str );
+            var result = '';
+            var i; for ( i=0; i<raw.length; i++ ) {
+                var hex = raw.charCodeAt( i ).toString( 16 );
+                result += ( hex.length === 2 ? hex : '0' + hex );
+            }
+            return result;
+        }
+        function hexToBase64(hex) {
+            return btoa( hex.match( /\w{2}/g ).map( a => {return String.fromCharCode( parseInt( a, 16 ) );} ).join( "" ) );
+        }
+        function hexToText( hex ) {
+            var bytes = new Uint8Array(Math.ceil(hex.length / 2));
+            for (var i = 0; i < hex.length; i++) bytes[i] = parseInt(hex.substr(i * 2, 2), 16);
+            var text = new TextDecoder().decode( bytes );
+            return text;
+        }
+        function textToHex( text ) {
+            var encoder = new TextEncoder().encode( text );
+            return [...new Uint8Array(encoder)]
+                .map( x => x.toString( 16 ).padStart( 2, "0" ) )
+                .join( "" );
+        }
+        function encrypt( privkey, pubkey, text ) {
+            var key = nobleSecp256k1.getSharedSecret( privkey, '02' + pubkey, true ).substring( 2 );
+            var iv = window.crypto.getRandomValues(new Uint8Array(16));
+            var cipher = browserifyCipher.createCipheriv( 'aes-256-cbc', hexToBytes( key ), iv );
+            var encryptedMessage = cipher.update(text,"utf8","base64");
+            emsg = encryptedMessage + cipher.final( "base64" );
+            var uint8View = new Uint8Array( iv.buffer );
+            var decoder = new TextDecoder();
+            return emsg + "?iv=" + btoa( String.fromCharCode.apply( null, uint8View ) );
+        }
+        function decrypt( privkey, pubkey, ciphertext ) {
+            var [ emsg, iv ] = ciphertext.split( "?iv=" );
+            var key = nobleSecp256k1.getSharedSecret( privkey, '02' + pubkey, true ).substring( 2 );
+            var decipher = browserifyCipher.createDecipheriv(
+                'aes-256-cbc',
+                hexToBytes( key ),
+                hexToBytes( base64ToHex( iv ) )
+            );
+            var decryptedMessage = decipher.update( emsg, "base64" );
+            dmsg = decryptedMessage + decipher.final( "utf8" );
+            return dmsg;
+        }
+    </script>
+    <script>
+        async function ensureWalletIsAvailable() {
+            //check if user has a wallet stored in local storage
+            if ( localStorage[ "wallet_info" ] ) {
+                userHasLocalWallet = true;
+                var wallet_info = JSON.parse( localStorage[ "wallet_info" ] );
+                var wallet_url = wallet_info[ "wallet_url" ];
+                ln_domain = wallet_url.substring( 0, wallet_url.indexOf( "/wallet" ) );
+                ln_readkey = wallet_info[ "readkey" ];
+                return;
+            }
+            // if they do not, make a lightning wallet for them
+            var wallet_info = await makeLNWallet( pubKey.substring( 0, 15 ) );
+            // I used to store it on nostr here but now I wait til
+            // they create a store and then store it in the store info
+            localStorage[ "wallet_info" ] = JSON.stringify( wallet_info );
+            var wallet_info = JSON.parse( localStorage[ "wallet_info" ] );
+            var wallet_url = wallet_info[ "wallet_url" ];
+            ln_domain = wallet_url.substring( 0, wallet_url.indexOf( "/wallet" ) );
+            ln_readkey = wallet_info[ "readkey" ];
+            // get invoice: postData( "https://legend.lnbits.com/api/v1/payments", '{"out": false, "amount": 1000}', content_type = "application/json", apikey = "6eafd20149f6491baa61166faba0d9dc" );
+            //check invoice: getData( "https://legend.lnbits.com/api/v1/payments/a89f4279b098fa4e6254798619902f3a1bfb3adeabe4006284d842075442d1bf", "application/json", "6eafd20149f6491baa61166faba0d9dc" );
+        }
+        async function getNostrNote( id, relay ) {
+            var started_waiting_time = Math.floor( Date.now() / 1000 );
+            var note = "";
+            var rand = Math.floor( Math.random() * Object.keys( relays_obj ).length );
+            if ( !relay ) {
+                var socket = relays_obj[ Object.keys( relays_obj )[ rand ] ];
+            } else {
+                var socket = new WebSocket( relay );
+            }
+            socket.addEventListener( 'message', async function( event ) {
+                var event = JSON.parse( event.data );
+                var myrelay = relay;
+                if ( !myrelay ) myrelay = Object.keys( relays_obj )[ rand ];
+                console.log( `got an event from this relay: ${myrelay}`, event );
+                if ( event[ 3 ] && ( event[ 3 ].includes( "have this event" ) || event[ 3 ].includes( "duplicate: exists" ) ) ) note = "relay has event";
+                if ( !event[ 2 ] || event[ 2 ] === true || event[ 2 ] === false ) return;
+                var sig = event[ 2 ].sig;
+                var eventData = JSON.stringify([
+                    0,                  // Reserved for future use
+                    event[ 2 ]['pubkey'],       // The sender's public key
+                    event[ 2 ]['created_at'],   // Unix timestamp
+                    event[ 2 ]['kind'],     // Message “kind” or type
+                    event[ 2 ]['tags'],     // Tags identify replies/recipients
+                    event[ 2 ]['content']       // Your note contents
+                ]);
+                var id  = sha256( eventData ).toString( 'hex' );
+                var valid = await nobleSecp256k1.schnorr.verify( sig, id, event[ 2 ].pubkey );
+                if ( valid && !relay ) note = event[ 2 ].content;
+                if ( valid && relay ) note = JSON.stringify([event[ 2 ].content, event[ 2 ].pubkey, event[ 2 ].id, relay]);
+            });
+            socket.addEventListener( 'open', function open() {
+                var randomid = bitcoinjs.ECPair.makeRandom().privateKey.toString( "hex" ).substring( 0, 16 );
+                var filter = {"ids": [ id ]}
+                var subscription = [ "REQ", randomid, filter ];
+                subscription = JSON.stringify( subscription );
+                var chaser = [ "CLOSE", randomid ];
+                chaser = JSON.stringify( chaser );
+                socket.send( subscription );
+                setTimeout( function() {socket.send( chaser );}, 1000 );
+                setTimeout( function() {socket.close();}, 2000 );
+            });
+            async function isNoteSetYet( note_i_seek ) {
+                return new Promise( function( resolve, reject ) {
+                    if ( !note_i_seek ) {
+                        var current_time = Math.floor( Date.now() / 1000 );
+                        if ( started_waiting_time + 5 < current_time ) {
+                            resolve( "time is up" );
+                        }
+                        setTimeout( async function() {
+                            var msg = await isNoteSetYet( note );
+                            resolve( msg );
+                        }, 100 );
+                    } else {
+                        resolve( note_i_seek );
+                    }
+                });
+            }
+            async function getTimeoutData() {
+                var note_i_seek = await isNoteSetYet( note );
+                return note_i_seek;
+            }
+            var returnable = await getTimeoutData();
+            return returnable;
+        }
+        async function getMeta( pubkey, relay, give_full_event ) {
+            var started_waiting_time = Math.floor( Date.now() / 1000 );
+            var note = "";
+            var socket = new WebSocket( relay );
+            socket.addEventListener( 'message', async function( event ) {
+                var event = JSON.parse( event.data );
+                if ( !event[ 2 ] || event[ 2 ] === true || event[ 2 ] === false ) return;
+                var sig = event[ 2 ].sig;
+                var eventData = JSON.stringify([
+                    0,                  // Reserved for future use
+                    event[ 2 ]['pubkey'],       // The sender's public key
+                    event[ 2 ]['created_at'],   // Unix timestamp
+                    event[ 2 ]['kind'],     // Message “kind” or type
+                    event[ 2 ]['tags'],     // Tags identify replies/recipients
+                    event[ 2 ]['content']       // Your note contents
+                ]);
+                var id  = sha256( eventData ).toString( 'hex' );
+                var valid = await nobleSecp256k1.schnorr.verify( sig, id, event[ 2 ].pubkey );
+                if ( valid && !give_full_event ) note = event[ 2 ].content;
+                if ( valid && give_full_event ) note = event[ 2 ];
+            });
+            socket.addEventListener( 'open', function open() {
+                var randomid = bitcoinjs.ECPair.makeRandom().privateKey.toString( "hex" ).substring( 0, 16 );
+                var filter = {"kinds": [ 0 ], "authors": [ pubkey ], "limit": 1}
+                var subscription = [ "REQ", randomid, filter ];
+                subscription = JSON.stringify( subscription );
+                var chaser = [ "CLOSE", randomid ];
+                chaser = JSON.stringify( chaser );
+                socket.send( subscription );
+                setTimeout( function() {socket.send( chaser );}, 1000 );
+                setTimeout( function() {socket.close();}, 2000 );
+            });
+            async function isNoteSetYet( note_i_seek ) {
+                return new Promise( function( resolve, reject ) {
+                    if ( !note_i_seek ) {
+                        var current_time = Math.floor( Date.now() / 1000 );
+                        if ( started_waiting_time + 5 < current_time ) {
+                            resolve( "time is up" );
+                        }
+                        setTimeout( async function() {
+                            var msg = await isNoteSetYet( note );
+                            resolve( msg );
+                        }, 100 );
+                    } else {
+                        resolve( note_i_seek );
+                    }
+                });
+            }
+            async function getTimeoutData() {
+                var note_i_seek = await isNoteSetYet( note );
+                return note_i_seek;
+            }
+            var returnable = await getTimeoutData();
+            return returnable;
+        }
+        var eventWasReplayedTilSeen = async ( event, the_relay ) => {
+            if ( the_relay ) {
+                var note = await getNostrNote( event.id, the_relay );
+            } else {
+                var note = await getNostrNote( event.id );
+            }
+            if ( note != "time is up" ) return true;
+            console.log( "replaying..." );
+            if ( the_relay ) {
+                var socket = new WebSocket( the_relay );
+                socket.addEventListener( "open", () => {
+                    socket.send(JSON.stringify([ "EVENT", event ]));
+                });
+            } else {
+                Object.keys( relays_obj ).forEach( function( relay ) {
+                    try {
+                        relays_obj[ relay ].send(JSON.stringify([ "EVENT", event ]));
+                    } catch ( e ) {}
+                });
+            }
+            var was_seen = await eventWasReplayedTilSeen( event, the_relay );
+            return was_seen;
+        }
+        var eventWasSeenByTwoRelays = async event => {
+            var seen_by = 0;
+            var i; for ( i=0; i<Object.keys( relays_obj ).length; i++ ) {
+                var relay = Object.keys( relays_obj )[ i ];
+                var was_seen = await getNostrNote( event.id, relay );
+                if ( was_seen === "time is up" ) continue;
+                seen_by = seen_by + 1;
+            }
+            if ( seen_by > 1 ) return true;
+        }
+        var ensureEventWasSeenByTwoRelays = async event => {
+            Object.keys( relays_obj ).forEach( function( relay ) {
+                relays_obj[ relay ].send( JSON.stringify( [ "EVENT", event ] ) );
+            });
+            await waitSomeSeconds( 2 );
+            var was_seen = await eventWasSeenByTwoRelays( event );
+            if ( !was_seen ) was_seen = await ensureEventWasSeenByTwoRelays( event );
+            return was_seen;
+        }
+        function pubkeyFromNpub( npub ) {
+            return bytesToHex( bech32.bech32.fromWords( bech32.bech32.decode( npub ).words ) );
+        }
+        function pubkeyToNpub( hex ) {
+            return bech32.bech32.encode( "npub", bech32.bech32.toWords( hexToBytes( hex, "hex" ) ) );
+        }
+    </script>
+</head>
+<body>
+    <div class="title_wrapper"><div class="title"></div></div>
+    <div class="meta_wrapper"><div class="store_meta"></div></div>
+    <div class="splash_screen">Loading...</div>
+    <div class="make_store">
+        <div class="products">
+            <div class="manage_sales_toolbar"></div>
+            <div style="display: flex; justify-content: space-between; flex-wrap: wrap; align-items: center;">
+                <h2 class="name_instructions">Name your store</h2>
+                <a class="connect_nostr" target="_blank"><button>Connect nostr</button></a>
             </div>
-            <a href="started.html"><button class="button">Get Started</button></a>
-          </div>
-          <div data-thq="thq-burger-menu" class="home-burger-menu">
-            <button class="button home-button5">
-              <svg viewBox="0 0 1024 1024" class="home-icon">
-                <path
-                  d="M128 554.667h768c23.552 0 42.667-19.115 42.667-42.667s-19.115-42.667-42.667-42.667h-768c-23.552 0-42.667 19.115-42.667 42.667s19.115 42.667 42.667 42.667zM128 298.667h768c23.552 0 42.667-19.115 42.667-42.667s-19.115-42.667-42.667-42.667h-768c-23.552 0-42.667 19.115-42.667 42.667s19.115 42.667 42.667 42.667zM128 810.667h768c23.552 0 42.667-19.115 42.667-42.667s-19.115-42.667-42.667-42.667h-768c-23.552 0-42.667 19.115-42.667 42.667s19.115 42.667 42.667 42.667z"
-                ></path>
-              </svg>
-            </button>
-          </div>
-          <div data-thq="thq-mobile-menu" class="home-mobile-menu">
-            <div
-              data-thq="thq-mobile-menu-nav"
-              data-role="Nav"
-              class="home-nav1"
-            >
-              <div class="home-container1">
-                <span class="home-logo1">SatstoGo!</span>
-                <div data-thq="thq-close-menu" class="home-menu-close">
-                  <svg viewBox="0 0 1024 1024" class="home-icon02">
-                    <path
-                      d="M810 274l-238 238 238 238-60 60-238-238-238 238-60-60 238-238-238-238 60-60 238 238 238-238z"
-                    ></path>
-                  </svg>
+            <input class="store_name">
+            <div style="display: flex; justify-content: space-between; flex-wrap: wrap; align-items: center;">
+                <h2 class="product_instructions">Add products</h2>
+                <a class="public_link" target="_blank"><button>View store</button></a>
+            </div>
+            <div class="products_wrapper">
+                <div class="product">
+                    <input placeholder="product name"><input placeholder="image url"><textarea placeholder="description" class="desc"></textarea><select placeholder="shipping zone"><option>--- Shipping zone ---</option><option>Free (digital)</option><option>Worldwide</option><option>Europe</option><option>Australia</option><option>Austria</option><option>Belgium</option><option>Brazil</option><option>Canada</option><option>Denmark</option><option>Finland</option><option>France</option><option>Germany</option><option>Greece</option><option>Hong Kong</option><option>Hungary</option><option>Ireland</option><option>Indonesia</option><option>Israel</option><option>Italy</option><option>Japan</option><option>Kazakhstan</option><option>Korea</option><option>Luxembourg</option><option>Malaysia</option><option>Mexico</option><option>Netherlands</option><option>New Zealand</option><option>Norway</option><option>Poland</option><option>Portugal</option><option>Russia</option><option>Saudi Arabia</option><option>Singapore</option><option>Spain</option><option>Sweden</option><option>Switzerland</option><option>Thailand</option><option>Turkey</option><option>Ukraine</option><option>United Kingdom</option><option>United States</option><option>Vietnam</option><option>China</option></select><input placeholder="usd price (e.g. 5.99)" class="price" type="number" step="0.01" min="0"><div style="margin-bottom: 1rem;"><input type="checkbox" style="width: 1rem;vertical-align: middle;margin-bottom: auto;" id="no_price_0"><label for="no_price_0" style="display: inline;vertical-align: middle;">Let users set the price</label></div><button class="preview">Product preview</button><button class="plus_and_minus">Add another product</button>
                 </div>
-              </div>
-              <nav
-                data-thq="thq-mobile-menu-nav-links"
-                data-role="Nav"
-                class="home-nav2"
-              >
-                <span class="home-text"><a href="index.html">Concern</a></span>
-                <span class="home-text01">Features</span>
-                <span class="home-text02">User-Journey</span>
-                <span class="home-text03">Team</span>
-                <!-- <span class="home-text04">Blog</span> -->
-              </nav>
-              <div class="home-container2">
-                <a href="started.html"><button class="home-login button">Login</button></a>
-                <a href="started.html"><button class="button">Register</button></a>
-              </div>
             </div>
-            <div class="home-icon-group">
-              <svg viewBox="0 0 950.8571428571428 1024" class="home-icon04">
-                <path
-                  d="M925.714 233.143c-25.143 36.571-56.571 69.143-92.571 95.429 0.571 8 0.571 16 0.571 24 0 244-185.714 525.143-525.143 525.143-104.571 0-201.714-30.286-283.429-82.857 14.857 1.714 29.143 2.286 44.571 2.286 86.286 0 165.714-29.143 229.143-78.857-81.143-1.714-149.143-54.857-172.571-128 11.429 1.714 22.857 2.857 34.857 2.857 16.571 0 33.143-2.286 48.571-6.286-84.571-17.143-148-91.429-148-181.143v-2.286c24.571 13.714 53.143 22.286 83.429 23.429-49.714-33.143-82.286-89.714-82.286-153.714 0-34.286 9.143-65.714 25.143-93.143 90.857 112 227.429 185.143 380.571 193.143-2.857-13.714-4.571-28-4.571-42.286 0-101.714 82.286-184.571 184.571-184.571 53.143 0 101.143 22.286 134.857 58.286 41.714-8 81.714-23.429 117.143-44.571-13.714 42.857-42.857 78.857-81.143 101.714 37.143-4 73.143-14.286 106.286-28.571z"
-                ></path></svg><svg viewBox="0 0 877.7142857142857 1024" class="home-icon06">
-                <path
-                  d="M585.143 512c0-80.571-65.714-146.286-146.286-146.286s-146.286 65.714-146.286 146.286 65.714 146.286 146.286 146.286 146.286-65.714 146.286-146.286zM664 512c0 124.571-100.571 225.143-225.143 225.143s-225.143-100.571-225.143-225.143 100.571-225.143 225.143-225.143 225.143 100.571 225.143 225.143zM725.714 277.714c0 29.143-23.429 52.571-52.571 52.571s-52.571-23.429-52.571-52.571 23.429-52.571 52.571-52.571 52.571 23.429 52.571 52.571zM438.857 152c-64 0-201.143-5.143-258.857 17.714-20 8-34.857 17.714-50.286 33.143s-25.143 30.286-33.143 50.286c-22.857 57.714-17.714 194.857-17.714 258.857s-5.143 201.143 17.714 258.857c8 20 17.714 34.857 33.143 50.286s30.286 25.143 50.286 33.143c57.714 22.857 194.857 17.714 258.857 17.714s201.143 5.143 258.857-17.714c20-8 34.857-17.714 50.286-33.143s25.143-30.286 33.143-50.286c22.857-57.714 17.714-194.857 17.714-258.857s5.143-201.143-17.714-258.857c-8-20-17.714-34.857-33.143-50.286s-30.286-25.143-50.286-33.143c-57.714-22.857-194.857-17.714-258.857-17.714zM877.714 512c0 60.571 0.571 120.571-2.857 181.143-3.429 70.286-19.429 132.571-70.857 184s-113.714 67.429-184 70.857c-60.571 3.429-120.571 2.857-181.143 2.857s-120.571 0.571-181.143-2.857c-70.286-3.429-132.571-19.429-184-70.857s-67.429-113.714-70.857-184c-3.429-60.571-2.857-120.571-2.857-181.143s-0.571-120.571 2.857-181.143c3.429-70.286 19.429-132.571 70.857-184s113.714-67.429 184-70.857c60.571-3.429 120.571-2.857 181.143-2.857s120.571-0.571 181.143 2.857c70.286 3.429 132.571 19.429 184 70.857s67.429 113.714 70.857 184c3.429 60.571 2.857 120.571 2.857 181.143z"
-                ></path></svg><svg viewBox="0 0 602.2582857142856 1024" class="home-icon08">
-                <path
-                  d="M548 6.857v150.857h-89.714c-70.286 0-83.429 33.714-83.429 82.286v108h167.429l-22.286 169.143h-145.143v433.714h-174.857v-433.714h-145.714v-169.143h145.714v-124.571c0-144.571 88.571-223.429 217.714-223.429 61.714 0 114.857 4.571 130.286 6.857z"
-                ></path>
-              </svg>
-            </div>
-          </div>
-        </header>
-        <section class="home-hero">
-          <div class="home-heading">
-            <h1 class="home-header">Elevating Success through Punctuality</h1>
-            <p class="home-caption">
-              Time is Money – Earn Yours with Punctuality.
-            </p>
-          </div>
-          <div class="home-buttons">
-            <a href="started.html"><button class="button">Get Started</button></a>
-            <button class="home-learn button-clean button"><a href="started.html">Learn more</a></button>
-          </div>
-        </section>
-        <div class="home-mining">
-          <img
-            alt="image"
-            src="public/group%202422.svg"
-            class="home-image24"
-          />
-          <div class="home-content14">
-            <!-- <span class="home-caption11">Project</span> -->
-            <div class="home-heading03">
-              <h2 class="home-header08">How the app works</h2>
-              <p class="home-header09">
-                <span>
-                  The seamless integration of a digital signature, timestamp generation, and QR code issuance simplifies the process, making it user-friendly and effective.
-                </span>
-                <br />
-                <br />
-                <span>
-                  Users are incentivized to adhere to attendance expectations by receiving rewards when they fulfill the specified requirements, fostering a culture of timeliness and accountability within the user community.
-                </span>
-                <br />
-              </p>
-            </div>
-            <button class="home-view4 button-link button">
-              <span>Get Started</span>
-              <img
-                alt="image"
-                src="public/Icons/arrow.svg"
-                class="home-image25"
-              />
-            </button>
-          </div>
         </div>
-        <section class="home-description">
-          <img
-            alt="image"
-            src="public/hero-divider-1500w.png"
-            class="home-divider-image"
-          />
-          <div class="home-container3">
-            <div class="home-description01">
-              <div class="home-content">
-                <p class="home-paragraph">
-                  We are a team that promotes punctuality by creating an application for time and attendance, offering SATS rewards as an incentive.
-                </p>
-                <p class="home-paragraph1">
-                  This application enables scheduling and attendance tracking with an integrated rewards system. Users authenticate themselves using a digital signature, which triggers the creation of a timestamp, marks the user as present, and, based on predefined conditions, generates a payment QR code to reward the user if they meet the specified criteria.
-                </p>
-              </div>
-              <div class="home-links">
-                <a
-                  href="https://twitter.com"
-                  target="_blank"
-                  rel="noreferrer noopener"
-                  class="home-link button-link button"
-                >
-                  <span>Follow us on Twitter</span>
-                  <img
-                    alt="image"
-                    src="public/Icons/arrow.svg"
-                    class="home-arrow"
-                  />
-                </a>
-                <a
-                  href="https://discord.com"
-                  target="_blank"
-                  rel="noreferrer noopener"
-                  class="home-link01 button-link button"
-                >
-                  <span>Join us on Discord</span>
-                  <img
-                    alt="image"
-                    src="public/Icons/arrow.svg"
-                    class="home-arrow1"
-                  />
-                </a>
-              </div>
-            </div>
-          </div>
-        </section>
-        <section class="home-cards">
-          <div class="home-row">
-            <div class="home-card">
-              <div class="home-avatar">
-                <img
-                  alt="image"
-                  src="public/Avatars/avatar.svg"
-                  class="home-avatar1"
-                />
-              </div>
-              <div class="home-main">
-                <div class="home-content01">
-                  <h2 class="home-header01">10,000+ unique characters</h2>
-                  <p class="home-description02">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
-                    do eiusmod tempor incididunt ut labore et dolore magna
-                    aliquat enim ad minim veniam, quis nostrud exercitation
-                    ullamco laboris nisi
-                  </p>
+        <p><button class="store_maker">Submit</button></p>
+        <div class="preview_pane"></div>
+        <div class="progress" style="display: none;">
+            <h2>Progress bar <span id="goal" style="font-size: .8em; font-weight: normal;"></span></h2>
+            <div class="progressOutline" style="height: 2em; border: 1px solid grey; border-radius: 25px; overflow: hidden;">
+                <div class="progressBar" style="height: 2em; background-color: #61eb34; width: 0%; transition: width 1s;">
                 </div>
-                <button class="home-learn1 button">
-                  <span class="home-text07">Learn more</span>
-                  <img
-                    alt="image"
-                    src="public/Icons/arrow.svg"
-                    class="home-image02"
-                  />
-                </button>
-              </div>
             </div>
-            <div class="home-card01">
-              <div class="home-avatar2">
-                <img
-                  alt="image"
-                  src="public/Avatars/default-avatar.svg"
-                  class="home-avatar3"
-                />
-              </div>
-              <div class="home-main1">
-                <div class="home-content02">
-                  <h2 class="home-header02">
-                    Create yourself for the metaverse
-                  </h2>
-                  <p class="home-description03">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
-                    do eiusmod tempor incididunt ut labore et dolore magna
-                    aliquat enim ad minim veniam, quis nostrud exercitation
-                    ullamco laboris nisi
-                  </p>
-                </div>
-                <button class="home-learn2 button">
-                  <span class="home-text08">Learn more</span>
-                  <img
-                    alt="image"
-                    src="public/Icons/arrow-2.svg"
-                    class="home-image03"
-                  />
-                </button>
-              </div>
-            </div>
-          </div>
-          <div class="home-card02">
-            <div class="home-avatar4">
-              <img
-                alt="image"
-                src="public/Avatars/light-avatar.svg"
-                class="home-avatar5"
-              />
-            </div>
-            <div class="home-row1">
-              <div class="home-main2">
-                <div class="home-content03">
-                  <h2 class="home-header03">
-                    Create yourself for the metaverse
-                  </h2>
-                  <p class="home-description04">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
-                    do eiusmod tempor incididunt ut labore et dolore magna
-                    aliquat enim ad minim veniam, quis nostrud exercitation
-                    ullamco laboris nisi
-                  </p>
-                </div>
-                <button class="home-learn3 button">
-                  <span class="home-text09">Learn more</span>
-                  <img
-                    alt="image"
-                    src="public/Icons/arrow-2.svg"
-                    class="home-image04"
-                  />
-                </button>
-              </div>
-              <img
-                alt="image"
-                src="public/group%202262.svg"
-                class="home-image05"
-              />
-            </div>
-          </div>
-        </section>
-        <section class="home-collection">
-          <div class="home-content04">
-            <span class="home-caption01">collection</span>
-            <div class="home-heading01">
-              <h2 class="home-header04">All time best collections</h2>
-              <p class="home-header05">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-                eiusmod tempor incididunt ut labore et dolore.
-              </p>
-            </div>
-          </div>
-          <div class="home-main3">
-            <div class="home-card03">
-              <div class="home-image06">
-                <img
-                  alt="image"
-                  src="public/Characters/character-1.svg"
-                  class="home-image07"
-                />
-              </div>
-              <div class="home-content05">
-                <span class="home-caption02">Character #1</span>
-                <h3 class="home-title">0.05 ETH</h3>
-              </div>
-            </div>
-            <div class="home-card04">
-              <div class="home-image08">
-                <img
-                  alt="image"
-                  src="public/Characters/character-2.svg"
-                  class="home-image09"
-                />
-              </div>
-              <div class="home-content06">
-                <span class="home-caption03">Character #2</span>
-                <h3 class="home-title1">0.05 ETH</h3>
-              </div>
-            </div>
-            <div class="home-card05">
-              <div class="home-image10">
-                <img
-                  alt="image"
-                  src="public/Characters/character-3.svg"
-                  class="home-image11"
-                />
-              </div>
-              <div class="home-content07">
-                <span class="home-caption04">Character #3</span>
-                <h3 class="home-title2">0.05 ETH</h3>
-              </div>
-            </div>
-            <div class="home-card06">
-              <div class="home-image12">
-                <img
-                  alt="image"
-                  src="public/Characters/character-4.svg"
-                  class="home-image13"
-                />
-              </div>
-              <div class="home-content08">
-                <span class="home-caption05">
-                  <span>Character #4</span>
-                  <br />
-                </span>
-                <h3 class="home-title3">0.05 ETH</h3>
-              </div>
-            </div>
-            <div class="home-card07">
-              <div class="home-image14">
-                <img
-                  alt="image"
-                  src="public/Characters/character-5.svg"
-                  class="home-image15"
-                />
-              </div>
-              <div class="home-content09">
-                <span class="home-caption06">Character #5</span>
-                <h3 class="home-title4">0.05 ETH</h3>
-              </div>
-            </div>
-            <div class="home-card08">
-              <div class="home-image16">
-                <img
-                  alt="image"
-                  src="public/Characters/character-6.svg"
-                  class="home-image17"
-                />
-              </div>
-              <div class="home-content10">
-                <span class="home-caption07">Character #6</span>
-                <h3 class="home-title5">0.05 ETH</h3>
-              </div>
-            </div>
-            <div class="home-card09">
-              <div class="home-image18">
-                <img
-                  alt="image"
-                  src="public/Characters/character-7.svg"
-                  class="home-image19"
-                />
-              </div>
-              <div class="home-content11">
-                <span class="home-caption08">Character #7</span>
-                <h3 class="home-title6">0.05 ETH</h3>
-              </div>
-            </div>
-            <div class="home-card10">
-              <div class="home-image20">
-                <img
-                  alt="image"
-                  src="public/Characters/character-8.svg"
-                  class="home-image21"
-                />
-              </div>
-              <div class="home-content12">
-                <span class="home-caption09">Character #8</span>
-                <h3 class="home-title7">0.05 ETH</h3>
-              </div>
-            </div>
-          </div>
-          <button class="home-view2 button-link button">View all</button>
-        </section>
-        <section class="home-project">
-          <div class="home-understand">
-            <div class="home-content13">
-              <span class="home-caption10">Project</span>
-              <div class="home-heading02">
-                <h2 class="home-header06">Understand the project</h2>
-                <p class="home-header07">
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
-                  do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-                  Ut enim ad minim veniam, quis nostrud exercitation ullamco
-                  laboris nisi ut aliquip ex ea commodo consequat.
-                </p>
-              </div>
-              <button class="home-view3 button-link button">
-                <span>Learn More</span>
-                <img
-                  alt="image"
-                  src="public/Icons/arrow.svg"
-                  class="home-image22"
-                />
-              </button>
-            </div>
-            <img
-              alt="image"
-              src="public/group%202415.svg"
-              class="home-image23"
-            />
-          </div>
-          <div class="home-mining">
-            <img
-              alt="image"
-              src="public/group%202422.svg"
-              class="home-image24"
-            />
-            <div class="home-content14">
-              <span class="home-caption11">Project</span>
-              <div class="home-heading03">
-                <h2 class="home-header08">How the minting works</h2>
-                <p class="home-header09">
-                  <span>
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
-                    do eiusmod tempor incididunt ut labore et dolore magna
-                    aliqua. Ut enim ad minim veniam, quis nostrud exercitation
-                    ullamco laboris nisi ut aliquip ex ea commodo consequat.
-                  </span>
-                  <br />
-                  <br />
-                  <span>
-                    Duis aute irure dolor in reprehenderit in voluptate velit
-                    esse cillum dolore eu fugiat nulla pariatur.
-                  </span>
-                  <br />
-                </p>
-              </div>
-              <button class="home-view4 button-link button">
-                <span>Learn More</span>
-                <img
-                  alt="image"
-                  src="public/Icons/arrow.svg"
-                  class="home-image25"
-                />
-              </button>
-            </div>
-          </div>
-        </section>
-        <section class="home-roadmap">
-          <div class="home-heading04">
-            <h2 class="home-header10">Roadmap</h2>
-            <p class="home-header11">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-              eiusmod tempor incididunt ut labore
-            </p>
-          </div>
-          <div class="home-list">
-            <div class="home-step">
-              <span class="home-caption12">01</span>
-              <div class="home-heading05">
-                <h2 class="home-header12">Project Launch</h2>
-                <p class="home-header13">
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
-                  do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-                  Ut enim ad minim veniam, quis nostrud exercitation ullamco
-                  laboris nisi ut aliquip ex ea commodo consequat.
-                </p>
-              </div>
-              <button class="home-button6 button">View on Opensea</button>
-            </div>
-            <div class="home-step1">
-              <span class="home-caption13">02</span>
-              <div class="home-heading06">
-                <h2 class="home-header14">Metadata and Character</h2>
-                <p class="home-header15">
-                  <span>
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
-                    do eiusmod tempor incididunt ut labore et dolore magna
-                    aliqua.
-                  </span>
-                  <br />
-                  <br />
-                  <span>
-                    Ut enim ad minim veniam, quis nostrud exercitation ullamco
-                    laboris nisi ut aliquip ex ea commodo consequat.
-                  </span>
-                  <br />
-                </p>
-              </div>
-            </div>
-            <div class="home-step2">
-              <span class="home-caption14">03</span>
-              <div class="home-heading07">
-                <h2 class="home-header16">Get Physical</h2>
-                <p class="home-header17">
-                  <span>
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
-                    do eiusmod tempor incididunt ut labore et dolore magna
-                    aliqua.
-                  </span>
-                  <br />
-                  <br />
-                  <span>
-                    Ut enim ad minim veniam, quis nostrud exercitation ullamco
-                    laboris nisi ut aliquip ex ea commodo consequat.
-                  </span>
-                  <br />
-                </p>
-              </div>
-            </div>
-            <div class="home-step3">
-              <span class="home-caption15">04</span>
-              <div class="home-heading08">
-                <h2 class="home-header18">Private club community</h2>
-                <p class="home-header19">
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
-                  do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-                </p>
-                <div class="home-benefits">
-                  <div class="home-item">
-                    <img
-                      alt="image"
-                      src="public/Icons/people.svg"
-                      class="home-image26"
-                    />
-                    <p class="home-header20">Consectetur adipiscing elit</p>
-                  </div>
-                  <div class="home-item1">
-                    <img
-                      alt="image"
-                      src="public/Icons/paper.svg"
-                      class="home-image27"
-                    />
-                    <p class="home-header21">Consectetur adipiscing elit</p>
-                  </div>
-                  <div class="home-item2">
-                    <img
-                      alt="image"
-                      src="public/Icons/checklist.svg"
-                      class="home-image28"
-                    />
-                    <p class="home-header22">Consectetur adipiscing elit</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-        <section class="home-join-us">
-          <div class="home-content15">
-            <div class="home-main4">
-              <div class="home-heading09">
-                <h2 class="home-header23">Create your character now</h2>
-                <p class="home-caption16">
-                  A character custom collection is joining the NFT space on
-                  Opensea.
-                </p>
-              </div>
-              <button class="home-view5 button">View on Opensea</button>
-            </div>
-            <img
-              alt="image"
-              src="public/group%202273.svg"
-              class="home-image29"
-            />
-          </div>
-        </section>
-        <section class="home-faq">
-          <h2 class="home-header24">We have all the answers</h2>
-          <div class="home-accordion">
-            <div data-role="accordion-container" class="home-element accordion">
-              <div class="home-content16">
-                <span class="home-header25">
-                  Lorem ipsum dolor sit ametetur elit?
-                </span>
-                <span data-role="accordion-content" class="home-description05">
-                  Sed ut perspiciatis unde omnis iste natus error sit voluptatem
-                  accusantium doloremque laudantium, totam rem aperiam, eaque
-                  ipsa quae ab illo inventore veritatis et quasi architecto
-                  beatae vitae dicta sunt explicabo.
-                </span>
-              </div>
-              <div class="home-icon-container">
-                <svg
-                  viewBox="0 0 1024 1024"
-                  data-role="accordion-icon-closed"
-                  class="home-icon10"
-                >
-                  <path
-                    d="M213.333 554.667h256v256c0 23.552 19.115 42.667 42.667 42.667s42.667-19.115 42.667-42.667v-256h256c23.552 0 42.667-19.115 42.667-42.667s-19.115-42.667-42.667-42.667h-256v-256c0-23.552-19.115-42.667-42.667-42.667s-42.667 19.115-42.667 42.667v256h-256c-23.552 0-42.667 19.115-42.667 42.667s19.115 42.667 42.667 42.667z"
-                  ></path></svg><svg
-                  viewBox="0 0 1024 1024"
-                  data-role="accordion-icon-open"
-                  class="home-icon12"
-                >
-                  <path
-                    d="M213.333 554.667h597.333c23.552 0 42.667-19.115 42.667-42.667s-19.115-42.667-42.667-42.667h-597.333c-23.552 0-42.667 19.115-42.667 42.667s19.115 42.667 42.667 42.667z"
-                  ></path>
-                </svg>
-              </div>
-            </div>
-            <div
-              data-role="accordion-container"
-              class="home-element1 accordion"
-            >
-              <div class="home-content17">
-                <span class="home-header26">
-                  Excepteur sint occaecat cupidatat non sunt in culpa qui
-                  officia deserunt mollit anim id est laborum?
-                </span>
-                <span data-role="accordion-content" class="home-description06">
-                  Sed ut perspiciatis unde omnis iste natus error sit voluptatem
-                  accusantium doloremque laudantium, totam rem aperiam, eaque
-                  ipsa quae ab illo inventore veritatis et quasi architecto
-                  beatae vitae dicta sunt explicabo.
-                </span>
-              </div>
-              <div class="home-icon-container1">
-                <svg
-                  viewBox="0 0 1024 1024"
-                  data-role="accordion-icon-closed"
-                  class="home-icon14"
-                >
-                  <path
-                    d="M213.333 554.667h256v256c0 23.552 19.115 42.667 42.667 42.667s42.667-19.115 42.667-42.667v-256h256c23.552 0 42.667-19.115 42.667-42.667s-19.115-42.667-42.667-42.667h-256v-256c0-23.552-19.115-42.667-42.667-42.667s-42.667 19.115-42.667 42.667v256h-256c-23.552 0-42.667 19.115-42.667 42.667s19.115 42.667 42.667 42.667z"
-                  ></path></svg><svg
-                  viewBox="0 0 1024 1024"
-                  data-role="accordion-icon-open"
-                  class="home-icon16"
-                >
-                  <path
-                    d="M213.333 554.667h597.333c23.552 0 42.667-19.115 42.667-42.667s-19.115-42.667-42.667-42.667h-597.333c-23.552 0-42.667 19.115-42.667 42.667s19.115 42.667 42.667 42.667z"
-                  ></path>
-                </svg>
-              </div>
-            </div>
-            <div
-              data-role="accordion-container"
-              class="home-element2 accordion"
-            >
-              <div class="home-content18">
-                <span class="home-header27">
-                  Tempor incididunt ut labore et dolore magna aliquat enim ad
-                  minim?
-                </span>
-                <span data-role="accordion-content" class="home-description07">
-                  Sed ut perspiciatis unde omnis iste natus error sit voluptatem
-                  accusantium doloremque laudantium, totam rem aperiam, eaque
-                  ipsa quae ab illo inventore veritatis et quasi architecto
-                  beatae vitae dicta sunt explicabo.
-                </span>
-              </div>
-              <div class="home-icon-container2">
-                <svg
-                  viewBox="0 0 1024 1024"
-                  data-role="accordion-icon-closed"
-                  class="home-icon18"
-                >
-                  <path
-                    d="M213.333 554.667h256v256c0 23.552 19.115 42.667 42.667 42.667s42.667-19.115 42.667-42.667v-256h256c23.552 0 42.667-19.115 42.667-42.667s-19.115-42.667-42.667-42.667h-256v-256c0-23.552-19.115-42.667-42.667-42.667s-42.667 19.115-42.667 42.667v256h-256c-23.552 0-42.667 19.115-42.667 42.667s19.115 42.667 42.667 42.667z"
-                  ></path></svg><svg
-                  viewBox="0 0 1024 1024"
-                  data-role="accordion-icon-open"
-                  class="home-icon20"
-                >
-                  <path
-                    d="M213.333 554.667h597.333c23.552 0 42.667-19.115 42.667-42.667s-19.115-42.667-42.667-42.667h-597.333c-23.552 0-42.667 19.115-42.667 42.667s19.115 42.667 42.667 42.667z"
-                  ></path>
-                </svg>
-              </div>
-            </div>
-            <div
-              data-role="accordion-container"
-              class="home-element3 accordion"
-            >
-              <div class="home-content19">
-                <span class="home-header28">
-                  Lorem ipsum dolor sit ametetur elit?
-                </span>
-                <span data-role="accordion-content" class="home-description08">
-                  Sed ut perspiciatis unde omnis iste natus error sit voluptatem
-                  accusantium doloremque laudantium, totam rem aperiam, eaque
-                  ipsa quae ab illo inventore veritatis et quasi architecto
-                  beatae vitae dicta sunt explicabo.
-                </span>
-              </div>
-              <div class="home-icon-container3">
-                <svg
-                  viewBox="0 0 1024 1024"
-                  data-role="accordion-icon-closed"
-                  class="home-icon22"
-                >
-                  <path
-                    d="M213.333 554.667h256v256c0 23.552 19.115 42.667 42.667 42.667s42.667-19.115 42.667-42.667v-256h256c23.552 0 42.667-19.115 42.667-42.667s-19.115-42.667-42.667-42.667h-256v-256c0-23.552-19.115-42.667-42.667-42.667s-42.667 19.115-42.667 42.667v256h-256c-23.552 0-42.667 19.115-42.667 42.667s19.115 42.667 42.667 42.667z"
-                  ></path></svg><svg
-                  viewBox="0 0 1024 1024"
-                  data-role="accordion-icon-open"
-                  class="home-icon24"
-                >
-                  <path
-                    d="M213.333 554.667h597.333c23.552 0 42.667-19.115 42.667-42.667s-19.115-42.667-42.667-42.667h-597.333c-23.552 0-42.667 19.115-42.667 42.667s19.115 42.667 42.667 42.667z"
-                  ></path>
-                </svg>
-              </div>
-            </div>
-            <div
-              data-role="accordion-container"
-              class="home-element4 accordion"
-            >
-              <div class="home-content20">
-                <span class="home-header29">
-                  Incididunt ut labore et dolore?
-                </span>
-                <span data-role="accordion-content" class="home-description09">
-                  Sed ut perspiciatis unde omnis iste natus error sit voluptatem
-                  accusantium doloremque laudantium, totam rem aperiam, eaque
-                  ipsa quae ab illo inventore veritatis et quasi architecto
-                  beatae vitae dicta sunt explicabo.
-                </span>
-              </div>
-              <div class="home-icon-container4">
-                <svg
-                  viewBox="0 0 1024 1024"
-                  data-role="accordion-icon-closed"
-                  class="home-icon26"
-                >
-                  <path
-                    d="M213.333 554.667h256v256c0 23.552 19.115 42.667 42.667 42.667s42.667-19.115 42.667-42.667v-256h256c23.552 0 42.667-19.115 42.667-42.667s-19.115-42.667-42.667-42.667h-256v-256c0-23.552-19.115-42.667-42.667-42.667s-42.667 19.115-42.667 42.667v256h-256c-23.552 0-42.667 19.115-42.667 42.667s19.115 42.667 42.667 42.667z"
-                  ></path></svg><svg
-                  viewBox="0 0 1024 1024"
-                  data-role="accordion-icon-open"
-                  class="home-icon28"
-                >
-                  <path
-                    d="M213.333 554.667h597.333c23.552 0 42.667-19.115 42.667-42.667s-19.115-42.667-42.667-42.667h-597.333c-23.552 0-42.667 19.115-42.667 42.667s19.115 42.667 42.667 42.667z"
-                  ></path>
-                </svg>
-              </div>
-            </div>
-          </div>
-        </section>
-        <section class="home-get-yours">
-          <div class="home-row2">
-            <div class="home-column">
-              <div class="home-card11">
-                <img
-                  alt="image"
-                  src="public/Characters/character-9.svg"
-                  class="home-image30"
-                />
-              </div>
-            </div>
-            <div class="home-column1">
-              <div class="home-card12">
-                <img
-                  alt="image"
-                  src="public/Characters/character-10.svg"
-                  class="home-image31"
-                />
-              </div>
-            </div>
-          </div>
-          <div class="home-column2">
-            <div class="home-card13">
-              <div class="home-content21">
-                <h2 class="home-header30">Get yours now</h2>
-                <p class="home-description10">
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
-                  do eiusmod tempor incididunt ut labore et dolore magna aliquat
-                  enim ad minim veniam.
-                </p>
-              </div>
-              <button class="home-button7 button">View on Lightning</button>
-            </div>
-          </div>
-        </section>
-        <footer class="home-footer">
-          <div class="home-main5">
-            <div class="home-branding">
-              <div class="home-heading10">
-                <h2 class="home-logo2"><img
-                  alt="image"
-                  src="public/logo-sats.svg"
-                  class="home-image30"
-                /></h2>
-                <p class="home-caption17">
-                  We aim to encourage punctual attendance through SATS rewards by developing an LN Bits extension for time and attendance tracking.
-                </p>
-              </div>
-              <div class="home-socials1">
-                <a
-                  href="https://twitter.com"
-                  target="_blank"
-                  rel="noreferrer noopener"
-                  class="home-twitter1 social button"
-                >
-                  <img
-                    alt="image"
-                    src="public/Icons/twitter.svg"
-                    class="home-image32"
-                  />
-                </a>
-                <a
-                  href="https://discord.com"
-                  target="_blank"
-                  rel="noreferrer noopener"
-                  class="home-discord1 social button"
-                >
-                  <img
-                    alt="image"
-                    src="public/Icons/discord.svg"
-                    class="home-image33"
-                  />
-                </a>
-              </div>
-            </div>
-            <div class="home-links1">
-              <div class="home-list1">
-                <h3 class="home-heading11">Site</h3>
-                <div class="home-items">
-                  <button class="home-link02 button-clean button">About</button>
-                  <button class="home-link03 button-clean button">
-                    Collection
-                  </button>
-                  <button class="home-link04 button-clean button">
-                    Roadmap
-                  </button>
-                  <button class="home-link05 button-clean button">
-                    Features
-                  </button>
-                </div>
-              </div>
-              <div class="home-list2">
-                <h3 class="home-heading12">Company</h3>
-                <div class="home-items1">
-                  <button class="home-link06 button-clean button">Team</button>
-                  <button class="home-link07 button-clean button">Press</button>
-                  <button class="home-link08 button-clean button">Terms</button>
-                  <button class="home-link09 button-clean button">
-                    Limitations
-                  </button>
-                  <button class="home-link10 button-clean button">
-                    Licenses
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div class="home-socials2">
-              <a
-                href="https://twitter.com"
-                target="_blank"
-                rel="noreferrer noopener"
-                class="home-twitter2 social button"
-              >
-                <img
-                  alt="image"
-                  src="public/Icons/twitter.svg"
-                  class="home-image34"
-                />
-              </a>
-              <a
-                href="https://discord.com"
-                target="_blank"
-                rel="noreferrer noopener"
-                class="home-discord2 social button"
-              >
-                <img
-                  alt="image"
-                  src="public/Icons/discord.svg"
-                  class="home-image35"
-                />
-              </a>
-            </div>
-          </div>
-          <span class="home-copyright">
-            © 2023 Satstogo. All Rights Reserved.
-          </span>
-        </footer>
-        <div>
-          <div class="home-container5">
-            <script>
-              /*
-               Accordion - Code Embed
-               */
-              const accordionContainers = document.querySelectorAll("[data-role='accordion-container']"); // All accordion containers
-              const accordionContents = document.querySelectorAll("[data-role='accordion-content']"); // All accordion content
-              const accordionIconsClosed = document.querySelectorAll("[data-role='accordion-icon-closed']"); // All accordion closed icons
-              const accordionIconsOpen = document.querySelectorAll("[data-role='accordion-icon-open']"); // All accordion open icons
-
-
-               accordionContents.forEach((accordionContent) => {
-                   accordionContent.style.display = 'none'; //Hides all accordion contents
-               });
-
-               accordionIconsClosed.forEach((icon) => {
-                 icon.style.display = 'flex'
-               })
-
-               accordionIconsOpen.forEach((icon) => {
-                 icon.style.display = 'none'
-               })
-
-               accordionContainers.forEach((accordionContainer, index) => {
-                   accordionContainer.addEventListener('click', () => {
-                       if (accordionContents[index].style.display === 'flex') {
-                           // If the accordion is already open, close it
-                           accordionContents[index].style.display = 'none';
-                           accordionIconsClosed[index].style.display = 'flex';
-                           accordionIconsOpen[index].style.display = 'none'
-                       } else {
-                           // If the accordion is closed, open it
-                           accordionContents.forEach((accordionContent) => {
-                               accordionContent.style.display = 'none'; //Hides all accordion contents
-                           });
-
-                           accordionIconsClosed.forEach((accordionIcon) => {
-                               accordionIcon.style.display = 'flex'; // Resets all icon transforms to 0deg (default)
-                           });
-
-                           accordionIconsOpen.forEach((accordionIcon) => {
-                             accordionIcon.style.display = 'none';
-                           })
-
-                           accordionContents[index].style.display = 'flex'; // Shows accordion content
-                           accordionIconsClosed[index].style.display = 'none'; // Rotates accordion icon 180deg
-                           accordionIconsOpen[index].style.display = 'flex';
-                       }
-                   });
-               });
-            </script>
-          </div>
+            <div class="status"></div>
         </div>
-      </div>
     </div>
-    <script
-      data-section-id="navbar"
-      src="https://unpkg.com/@teleporthq/teleport-custom-scripts"
-    ></script>
-  </body>
+    <div class="view_store">
+        <div class="minicart">Cart (<span class="minicart_item_count">0</span> items) <button class="view_cart">View cart</button></div>
+        <div class="store_products" style="display: flex; justify-content: space-around; align-items: center; flex-wrap: wrap;"></div>
+    </div>
+    <div class="blank_view"></div>
+    <script>
+        if ( !$_GET[ "pubkey" ] && !$_GET[ "privkey" ] ) $( '.title' ).style.display = "flex";
+        $( '.store_name' ).value = "";
+        var title = {
+          html: () => {
+            var default_name = "Welcome to Magic Webstore, a simple webstore based on bitcoin";
+            var name = title.name ? title.name : default_name;
+            return `
+              <h1>${name}</h1> <img class="dropper" src="https://static.thenounproject.com/png/716717-200.png" style="height: 2rem; cursor: pointer;">
+            `;
+          },
+          name: "",
+          setState: (callback) => {
+            callback();
+            title.render();
+          },
+          render: () => {
+            $( ".title" ).innerHTML = title.html();
+            if ( $_GET[ "privkey" ] ) $( '.dropper' ).style.display = "none";
+            $( '.dropper' ).addEventListener( "click", showMeta );
+          }
+        };
+        title.render();
+        var showMeta = () => {
+            $( '.store_meta' ).style.marginTop = "1rem";            
+            $( '.dropper' ).removeEventListener( "click", showMeta );
+            $( '.dropper' ).addEventListener( "click", hideMeta );
+            $( '.dropper' ).style.transform = `rotate(180deg)`;
+        }
+        var hideMeta = () => {
+            $( '.store_meta' ).style.marginTop = "-220%";
+            $( '.dropper' ).removeEventListener( "click", hideMeta );
+            $( '.dropper' ).addEventListener( "click", showMeta );
+            $( '.dropper' ).style.transform = `rotate(0deg)`;
+        }
+        var store_meta = {
+          html: () => {
+            var order_or_orders = "orders";
+            var time_or_times = "times";
+            var order_or_orders_2 = "orders";
+            if ( store_meta.shipment_ids.length == 1 ) order_or_orders = "order";
+            if ( store_meta.checkin_ids.length == 1 ) time_or_times = "time";
+            if ( store_meta.recent_orders.length == 1 ) order_or_orders_2 = "order";
+            var last_purchase = store_meta.last_purchase ? new Date( store_meta.last_purchase * 1000 ).toLocaleDateString() : "never";
+            var last_shipment = store_meta.last_shipment ? new Date( store_meta.last_shipment * 1000 ).toLocaleDateString() : "never";
+            var message = ``;
+            var owner_pic = store_meta.owner_pic || "https://upload.wikimedia.org/wikipedia/commons/a/ac/Default_pfp.jpg";
+            if ( store_meta.owner_nym ) message += `<div class="profile_label">&nbsp;&nbsp;Store owner</div><a href="https://nostr.band/${pubkeyToNpub( store_meta.owner_pub )}" target="_blank" class="nostr_profile"><div class="pic" style="background-image: url(${owner_pic});"></div><div class="nym">${store_meta.owner_nym}</div></a><br>`;
+            message += `<span style="text-decoration: underline;">Magic stats</span><br>Lifetime purchases: ${store_meta.lifetime_orders.length}<br>Last purchase: ${last_purchase}<br>Last shipment: ${last_shipment}<br>Received this week: ${store_meta.recent_orders.length} ${order_or_orders_2}<br>Shipped this week: ${store_meta.shipment_ids.length} ${order_or_orders}`;
+            var now = Math.floor( Date.now() / 1000 );
+            if ( 1692047296 - now < 0 && store_meta.checkin_ids.length ) message += `<br>The owner also checked for new orders ${store_meta.checkin_ids.length} ${time_or_times} this week`;
+            return message;
+          },
+          checkin_ids: [],
+          shipment_ids: [],
+          recent_orders: [],
+          last_purchase: 0,
+          last_shipment: 0,
+          lifetime_orders: [],
+          owner_pub: "",
+          owner_rel: [],
+          owner_nym: "",
+          owner_pic: "",
+          setState: (callback) => {
+            callback();
+            store_meta.render();
+          },
+          render: () => {
+            $( '.store_meta' ).innerHTML = ``;
+            $( '.store_meta' ).innerHTML = store_meta.html();
+          }
+        };
+        store_meta.render();
+        $( '.store_name' ).onkeyup = () => {
+            title.setState( () => title.name = $( '.store_name' ).value );
+        }
+        if ( $_GET[ "pubkey" ] ) {$( '.products' ).style.display = "none";$( '.store_maker' ).style.display = "none";}
+        $( '.product label' ).previousElementSibling.checked = false;
+        $( '.product label' ).previousElementSibling.onclick = () => {
+            var elem = $( '.product label' ).previousElementSibling;
+            if ( elem.checked ) {
+                elem.parentElement.previousElementSibling.disabled = true;
+                elem.parentElement.previousElementSibling.style.backgroundColor = "#ccc";
+                elem.parentElement.previousElementSibling.value = "";
+            } else {
+                elem.parentElement.previousElementSibling.disabled = false;
+                elem.parentElement.previousElementSibling.style.backgroundColor = "transparent";
+            }
+        }
+        var cart = [];
+        $$( '.price' ).forEach( function( item, index ) {
+            $$( '.price' )[ index ].value = "";
+            item.onkeyup = ( e ) => {
+                if ( e.key === "$" ) {
+                    alert( "Error, please do not include a dollar sign. Just type 5.00 or similar." );
+                    $$( '.price' )[ index ].blur();
+                    $$( '.price' )[ index ].value = "";
+                    return;
+                }
+            }
+            item.onchange = () => {
+                $$( '.price' )[ index ].value = Number( $$( '.price' )[ index ].value ).toFixed(2);
+                if ( $$( '.price' )[ index ].value == "0.00" || $$( '.price' )[ index ].value == "0" ) $$( '.price' )[ index ].value = "";
+            }
+        });
+        $( '.preview' ).onclick = (e) => {
+            var checked = e.target.parentElement.children[ 5 ].children[ 0 ].checked;
+            var price = !checked ? Number( e.target.parentElement.children[ 4 ].value ):`Set an amount<div>$<input style="width: 90%;"></div>`;
+            if ( typeof price == "number" ) price = "$" + price.toFixed( 2 );
+            var html = `
+                <h2>Preview pane</h2>
+                <div class="store_product" style="background-color: lightgrey; border: 1px solid black; border-radius: 1rem; width: 100%; max-width: 13rem; text-align: center; padding: 1rem; word-wrap: break-word;">
+                    <img src="${e.target.parentElement.children[ 1 ].value}" style="border: 1px solid black; width: 100%; max-width: 10rem; margin: auto;">
+                    <div>${e.target.parentElement.children[ 0 ].value}</div>
+                    <div>${price}</div>
+                    <button>View product</button>
+                    <button class="add_to_cart">Add to cart</button>
+                </div>
+            `;
+            $( '.preview_pane' ).innerHTML = html;
+            $( '.preview_pane' ).style.display = "block";
+        }
+        $( '.store_maker' ).onclick = async () => {
+            $( '.progress' ).style.display = "block";
+            var i; for ( i=0; i<$$( 'select' ).length; i++ ) {
+                var item = $$( 'select' )[ i ];
+                if ( item.value.includes( "---" ) ) {
+                    alert( "You forgot to select a shipping zone on one of your products. Please try again." );
+                    return;
+                }
+            }
+            var product_ids = [];
+            var i; for ( i=0; i<$$( '.product' ).length; i++ ) {
+                var array = [...$$( '.product' )[ i ].children];
+                array.pop();
+                array.pop();
+                var checked = array[ array.length - 1 ].children[ 0 ].checked;
+                array.pop();
+                array.forEach( ( item, index ) => array[ index ] = item.value);
+                array.push( checked );
+                var obj = {
+                    product: array[ 0 ],
+                    image: array[ 1 ],
+                    description: array[ 2 ],
+                    shipping_zone: array[ 3 ],
+                    price: !checked ? Number( array[ 4 ] * 100 ) : "custom"
+                }
+                var content = JSON.stringify( obj );
+                var event = {
+                    "content"    : content,
+                    "created_at" : Math.floor( Date.now() / 1000 ),
+                    "kind"       : 42196,
+                    "tags"       : [],
+                    "pubkey"     : pubKey,
+                }
+                var signedEvent = await getSignedEvent(event, privKey);
+                product_ids.push( signedEvent.id );
+                Object.keys( relays_obj ).forEach( function( relay ) {
+                    relays_obj[ relay ].send(JSON.stringify([ "EVENT", signedEvent ]));
+                });
+                // socket.send(JSON.stringify([ "EVENT", signedEvent ]));
+                await waitSomeSeconds( 1 );
+                var percent = String( Math.floor( ( ( Number( i ) + Number( 1 ) ) / $$( '.product' ).length ) * 100 ) ) + "%";
+                $( '.progressBar' ).style.width = percent;
+                $( '.status' ).innerText = String( ( Number( i ) + Number( 1 ) ) ) + " out of " + String( $$( '.product' ).length ) + " products created";
+            }
+            var store_info = {}
+            store_info[ "whisper_address_linking_key" ] = original_pubkey;
+            await ensureWalletIsAvailable();
+            var domain = JSON.parse( localStorage[ "wallet_info" ] )[ "wallet_url" ].substring( 0, JSON.parse( localStorage[ "wallet_info" ] )[ "wallet_url" ].indexOf( "/wallet" ) );
+            var readkey = JSON.parse( localStorage[ "wallet_info" ] )[ "readkey" ];
+            store_info[ "lnbits_public" ] = {domain, readkey}
+            store_info[ "lnbits_secret" ] = encrypt( privKey, pubKey, localStorage[ "wallet_info" ] );
+            store_info[ "store_name" ] = $( '.title' ).innerText;
+            store_info[ "auth_privkey" ] = auth_privkey;
+            var event = {
+                "content"    : JSON.stringify( store_info ),
+                "created_at" : Math.floor( Date.now() / 1000 ),
+                "kind"       : 12196,
+                "tags"       : [ [ "products", ...product_ids ] ],
+                "pubkey"     : pubKey,
+            }
+            var signedEvent = await getSignedEvent(event, privKey);
+            Object.keys( relays_obj ).forEach( function( relay ) {
+                relays_obj[ relay ].send(JSON.stringify([ "EVENT", signedEvent ]));
+            });
+            // socket.send(JSON.stringify([ "EVENT", signedEvent ]));
+            if ( window.location.href.indexOf( "?" ) > -1 ) var url = window.location.href.substring( 0, window.location.href.indexOf( "?" ) ); else var url = window.location.href;
+            sessionStorage.removeItem( "modal_cleared" );
+            var shareable = `${url}?pubkey=${original_pubkey}&relays=${encodeURI( JSON.stringify( relays ) )}`;
+            var private = `${url}?privkey=${privKey}&relays=${encodeURI( JSON.stringify( relays ) )}`;
+            if ( $_GET[ "network" ] ) {
+                shareable += `&network=${$_GET[ "network" ]}`;
+                private += `&network=${$_GET[ "network" ]}`;
+            }
+            // var content = `<p><a href="${shareable}" target="_blank">Click here</a> to share your store</p><p><a href="${private}" target="_blank">Click here</a> to manage your store and withdraw your earnings</p>`;
+            var content = `Success, <a href="${shareable}" target="_blank">your store</a> is now ready. When you X out of this popup you will be redirected to its backend automatically.`;
+            showModal( content, true );
+            await getNote( "modal_cleared" );
+            window.location.href = private;
+        }
+        var renderCart = () => {
+            var total = 0;
+            var items = ``;
+            var requires_edelivery = false;
+            var requires_shipping = false;
+            cart.forEach( function( item ) {
+                if ( item[ "shipping_zone" ] != "Free (digital)" ) requires_shipping = true; else requires_edelivery = true;
+                total = total + item[ "price" ];
+                items += `<div class="minicart" style="display: flex; justify-content: space-between; text-align: left;"><div>${item[ "item" ]}</div><div style="text-align: right;align-self: center;">$${( item[ "price" ] / 100 ).toFixed( 2 )} <span style="border: 1px solid black;border-radius: 50%;width: 1.5rem;height: 1.5rem;display: inline-block;text-align: center; cursor: pointer;" onclick="var child = this.parentElement.parentElement;var parent = child.parentNode;var index = Array.prototype.indexOf.call(parent.children, child);cart.splice( index, 1 );renderCart();$( '.minicart_item_count' ).innerText = Number( $( '.minicart_item_count' ).innerText ) - 1;">&times;</span></div></div>`;
+            });
+            var total_div = `<div class="minicart" style="display: flex; justify-content: space-between; text-align: left;"><div>Total</div><div>$${( total / 100 ).toFixed( 2 )} aka ${dollarsToSats( ( total / 100 ).toFixed( 2 ) )} sats</div></div>`;
+            var edelivery_div = ``;
+            if ( requires_edelivery ) edelivery_div = `<div>Enter instructions for how to deliver your digital good(s) (e.g. email address? telegram handle? Please leave detailed instructions about what you want us to do)</div><textarea class="edelivery_form" style="width: 100%; height: 5rem;"></textarea>`
+            var shipping_div = ``;
+            if ( requires_shipping ) shipping_div = `<div>Enter what you want on your shipping label (and, if desired, a message for the merchant)</div><textarea class="shipping_label_form" style="width: 100%; height: 5rem;"></textarea>`
+            $( '.blank_view' ).innerHTML = `
+                <div>
+                    <div style="display: flex; align-items: center; cursor: pointer;" onclick="$( '.blank_view' ).style.display = 'none';$( '.store_products' ).style.display = 'flex';$( '.view_store' ).style.display = 'block';"><div style="display: flex; align-items: center; font-weight: bold; font-size: 3rem; margin-right: 0.5rem;">⇦</div><div style="font-weight: bold; font-size: 1.5rem;">Back</div></div>
+                    <h2>Your cart</h2>
+                    <div class="items">${items}</div>
+                    ${total_div}
+                    ${edelivery_div}
+                    ${shipping_div}
+                    <div style="text-align: right;"><button class="checkout">Checkout</button></div>
+                </div>
+            `;
+            $( '.view_store' ).style.display = "none";
+            $( '.blank_view' ).style.display = "block";
+            $( '.checkout' ).onclick = async () => {
+                if ( ( $( '.shipping_label_form' ) && !$( '.shipping_label_form' ).value ) || ( $( '.edelivery_form' ) && !$( '.edelivery_form' ).value ) ) {
+                    alert( "You forgot to enter delivery instructions, please do so and click the checkout button again" );
+                    return;
+                }
+                if ( $( '.shipping_label_form' ) ) sessionStorage.shipping_label_form = $( '.shipping_label_form' ).value;
+                if ( $( '.edelivery_form' ) ) sessionStorage.edelivery_form = $( '.edelivery_form' ).value;
+                var memo = sessionStorage.shipping_label_form;
+                if ( !memo ) memo = sessionStorage.edelivery_form;
+                if ( !memo ) memo = "Donation";
+                //eliminate all linebreaks from the memo
+                memo = memo.replaceAll( "\n", " | " );
+                memo = memo.replaceAll( " |  | ", " | " );
+                //shorten the memo to 159 characters because the max number of bytes the memo field
+                //can be is 639 and the max size of a utf8 character is 4 bytes and floor(639/4)=159
+                memo = memo.substring( 0, 159 );
+                $( '.blank_view' ).innerHTML = `
+                    <div style="display: flex; align-items: center; cursor: pointer;" onclick="renderCart();"><div style="display: flex; align-items: center; font-weight: bold; font-size: 3rem; margin-right: 0.5rem;">⇦</div><div style="font-weight: bold; font-size: 1.5rem;">Back</div></div>
+                    <h2>Checkout</h2>
+                    Please send <span class="sats_to_pay">${dollarsToSats( ( total / 100 ).toFixed( 2 ) )}</span> sats and wait for your auto-generated receipt (your shipment is not guaranteed til you have your receipt)
+                    <br><br>
+                    <div class="payment_box"></div>
+                `;
+                if ( ln_domain && ln_readkey ) {
+                    $( '.payment_box' ).innerHTML += `
+                        <div style="display: flex;justify-content: center;">
+                            <button class="ln_button">Lightning</button>
+                            <button class="bl_button">Base layer</button>
+                        </div>
+                        <div class="ln_box"></div>
+                    `;
+                    $( '.bl_button' ).onclick = () => {
+                        $( '.bl_box' ).style.display = "block";
+                        $( '.ln_box' ).style.display = "none";
+                    }
+                    $( '.ln_button' ).onclick = async () => {
+                        $( '.bl_box' ).style.display = "none";
+                        $( '.ln_box' ).style.display = "block";
+                    }
+                    getInvoice( total, memo );
+                }
+                var div = document.createElement( "div" );
+                div.className = "bl_box";
+                $( '.payment_box' ).append( div );
+                $( '.bl_box' ).append( createQR( whisper_data[ "whisper_address" ] ) );
+                $( '.bl_box' ).append( whisper_data[ "whisper_address" ] );
+                var was_it_stopped = await loopTilAddressReceivesMoney( whisper_data[ "whisper_address" ], mempoolNetwork );
+                if ( was_it_stopped == "stopped" ) return;
+                await waitSomeSeconds( 2 );
+                var txinfo = await addressReceivedMoneyInThisTx( whisper_data[ "whisper_address" ], mempoolNetwork );
+                if ( txinfo[ 2 ] >= dollarsToSats( ( total / 100 ).toFixed( 2 ) ) ) {
+                    var buyer_info = {}
+                    buyer_info[ "whisper_key" ] = whisper_data[ "whisper_key" ];
+                    if ( sessionStorage.edelivery_form ) buyer_info[ "edelivery_info" ] = sessionStorage.edelivery_form;
+                    if ( sessionStorage.shipping_label_form ) buyer_info[ "shipping_info" ] = sessionStorage.shipping_label_form;
+                    var message = JSON.stringify( [ buyer_info, [...cart] ] );
+                    var encrypted = encrypt( privKey, $_GET[ "pubkey" ].substring( 2 ), message );
+                    var event = {
+                        "content"    : encrypted,
+                        "created_at" : Math.floor( Date.now() / 1000 ),
+                        "kind"       : 4,
+                        "tags"       : [ [ 'p', $_GET[ "pubkey" ].substring( 2 ) ] ],
+                        "pubkey"     : pubKey,
+                    }
+                    var signedEvent = await getSignedEvent(event, privKey);
+                    // I commented out the old send method because I now have one
+                    // that verifies a relay got the message, which is better
+                    // Object.keys( relays_obj ).forEach( function( relay ) {
+                    //     relays_obj[ relay ].send( JSON.stringify([ "EVENT", signedEvent ]) );
+                    // });
+                    // var was_seen = await eventWasReplayedTilSeen( signedEvent );
+                    var was_seen = await ensureEventWasSeenByTwoRelays( signedEvent );
+                    // socket.send( JSON.stringify([ "EVENT", signedEvent ]) );
+                    console.log( "make sure this gets to the relay:", JSON.stringify([ "EVENT", signedEvent ]) );
+                    //notify the store owner if they are authenticated
+                    if ( store_meta.owner_pub ) {
+                        var encrypted = encrypt( stores_auth_privkey, store_meta.owner_pub, "This is a notification of sale. Check your magic webstore for more details." );
+                        var event = {
+                            "content"    : encrypted,
+                            "created_at" : Math.floor( Date.now() / 1000 ),
+                            "kind"       : 4,
+                            "tags"       : [ [ 'p', store_meta.owner_pub ] ],
+                            "pubkey"     : stores_auth_pubkey,
+                        }
+                        var signedEvent = await getSignedEvent( event, stores_auth_privkey );
+                        Object.keys( relays_obj ).forEach( function( relay ) {
+                            relays_obj[ relay ].send( JSON.stringify([ "EVENT", signedEvent ]) );
+                        });
+                        eventWasReplayedTilSeen( signedEvent, store_meta.owner_rel );
+                    }
+                    await waitSomeSeconds( 2 );
+                    sessionStorage.removeItem( "modal_cleared" );
+                    var receipt_items = ``;
+                    cart.forEach( function( item, index ) {
+                        receipt_items += `<div>Item: ${item[ "item" ]} | Price: $${( item[ "price" ] / 100 ).toFixed( 2 )}</div>`;
+                    });
+                    cart = [];
+                    if ( $( '.minicart_item_count' ) ) $( '.minicart_item_count' ).innerText = 0;
+                    var content = `<p>Thank you for your business. Here is your receipt:</p><p style="font-weight: bold;">Items purchased</p>${receipt_items}<p>Total: $${( total / 100 ).toFixed( 2 )}</p><p>Proof of payment: ${whisper_data[ "whisper_key" ]}</p><p>Keep this on you til you recieve your item. If the seller does not send you your item, contact them and show them your proof of payment.</p>`;
+                    showModal( content, true );
+                    await getNote( "modal_cleared" );
+                }
+            }
+        }
+        $( '.view_cart' ).onclick = renderCart;
+        var getInvoice = async ( total, memo ) => {
+            $( '.ln_box' ).innerHTML = `Loading...(if this doesn't load after 30 seconds, notify the store admin)`;
+            var invoice_data = await postData( `${ln_domain}/api/v1/payments`, `{"out": false, "amount": ${Number( $( '.sats_to_pay' ).innerText )}, "memo": "${memo}"}`, "application/json", ln_readkey );
+            $( '.ln_box' ).innerHTML = ``;
+            $( '.ln_box' ).append( createQR( JSON.parse( invoice_data )[ "payment_request" ] ) );
+            $( '.ln_box' ).append( JSON.parse( invoice_data )[ "payment_request" ] );
+            await loopTilInvoiceIsPaid( JSON.parse( invoice_data )[ "payment_hash" ] );
+            var buyer_info = {}
+            buyer_info[ "pmthash" ] = JSON.parse( invoice_data )[ "payment_hash" ];
+            if ( sessionStorage.edelivery_form ) buyer_info[ "edelivery_info" ] = sessionStorage.edelivery_form;
+            if ( sessionStorage.shipping_label_form ) buyer_info[ "shipping_info" ] = sessionStorage.shipping_label_form;
+            var message = JSON.stringify( [ buyer_info, [...cart] ] );
+            var encrypted = encrypt( privKey, $_GET[ "pubkey" ].substring( 2 ), message );
+            var event = {
+                "content"    : encrypted,
+                "created_at" : Math.floor( Date.now() / 1000 ),
+                "kind"       : 4,
+                "tags"       : [ [ 'p', $_GET[ "pubkey" ].substring( 2 ) ] ],
+                "pubkey"     : pubKey,
+            }
+            var signedEvent = await getSignedEvent(event, privKey);
+            // I commented out the old send method because I now have one
+            // that verifies a relay got the message, which is better
+            // Object.keys( relays_obj ).forEach( function( relay ) {
+            //     relays_obj[ relay ].send( JSON.stringify([ "EVENT", signedEvent ]) );
+            // });
+            var was_seen = await eventWasReplayedTilSeen( signedEvent );
+            // socket.send( JSON.stringify([ "EVENT", signedEvent ]) );
+            console.log( "make sure this gets to the relay:", JSON.stringify([ "EVENT", signedEvent ]) );
+            //notify the store owner if they are authenticated
+            if ( store_meta.owner_pub ) {
+                var encrypted = encrypt( stores_auth_privkey, store_meta.owner_pub, "This is a notification of sale. Check your magic webstore for more details." );
+                var event = {
+                    "content"    : encrypted,
+                    "created_at" : Math.floor( Date.now() / 1000 ),
+                    "kind"       : 4,
+                    "tags"       : [ [ 'p', store_meta.owner_pub ] ],
+                    "pubkey"     : stores_auth_pubkey,
+                }
+                var signedEvent = await getSignedEvent( event, stores_auth_privkey );
+                Object.keys( relays_obj ).forEach( function( relay ) {
+                    relays_obj[ relay ].send( JSON.stringify([ "EVENT", signedEvent ]) );
+                });
+                var was_seen = await eventWasReplayedTilSeen( signedEvent, store_meta.owner_rel );
+            }
+            await waitSomeSeconds( 2 );
+            sessionStorage.removeItem( "modal_cleared" );
+            var receipt_items = ``;
+            cart.forEach( function( item, index ) {
+                receipt_items += `<div>Item: ${item[ "item" ]} | Price: $${( item[ "price" ] / 100 ).toFixed( 2 )}</div>`;
+            });
+            cart = [];
+            if ( $( '.minicart_item_count' ) ) $( '.minicart_item_count' ).innerText = 0;
+            var content = `<p>Thank you for your business. Here is your receipt:</p><p style="font-weight: bold;">Items purchased</p>${receipt_items}<p>Total: $${( total / 100 ).toFixed( 2 )}</p><p>Proof of payment: ${buyer_info[ "pmthash" ]}</p><p>Keep this on you til you recieve your item. If the seller does not send you your item, contact them and show them your proof of payment.</p>`;
+            showModal( content, true );
+            await getNote( "modal_cleared" );
+        }
+        var checkInvoice = async ( pmthash ) => {
+            var status = await getData( `${ln_domain}/api/v1/payments/${pmthash}`, "application/json", ln_readkey );
+            status = JSON.parse( status );
+            return status;
+        }
+        var loopTilInvoiceIsPaid = async ( pmthash ) => {
+            var status = await checkInvoice( pmthash );
+            if ( !status[ "paid" ] ) {
+                await waitSomeSeconds( 2 );
+                console.log( "waiting for invoice to be paid..." );
+                return loopTilInvoiceIsPaid( pmthash );
+            } else {
+                return true;
+            }
+        }
+        var labelAsShipped = async ( order_id ) => {
+            var event = {
+                "content"    : "shipped",
+                "created_at" : Math.floor( Date.now() / 1000 ),
+                "kind"       : 42197,
+                "tags"       : [ [ "e", order_id ] ],
+                "pubkey"     : pubKey,
+            }
+            var signedEvent = await getSignedEvent(event, privKey);
+            Object.keys( relays_obj ).forEach( function( relay ) {
+                relays_obj[ relay ].send(JSON.stringify([ "EVENT", signedEvent ]));
+            });
+        }
+    </script>
+    <script>
+        async function openConnection() {
+            console.log( "connected to " + this.url );
+            if ( !relays_i_connected_to.includes( this.url ) ) relays_i_connected_to.push( this.url );
+            var subId   = ( "00" + bitcoinjs.ECPair.makeRandom().privateKey.toString( "hex" ) ).substring( 0, 16 );
+            if ( $_GET[ "pubkey"] ) {
+                var filter  = { authors: [ $_GET[ "pubkey" ].substring( 2 ) ], kinds: [ 12196, 42199 ] }
+                var filter2 = { authors: [ $_GET[ "pubkey" ].substring( 2 ) ], kinds: [ 42198 ], since: Math.floor( Date.now() / 1000 ) - 604800 }
+                var filter3 = { "#p": [ $_GET[ "pubkey" ].substring( 2 ) ], kinds: [ 4 ] }
+                var filter4 = { authors: [ $_GET[ "pubkey" ].substring( 2 ) ], kinds: [ 42197 ] }
+                var subscription = [ "REQ", subId, filter, filter2, filter3, filter4 ];
+            }
+            if ( $_GET[ "privkey"] ) {
+                var filter  = { "#p": [ pubKey ], kinds: [ 4 ] }
+                var filter2  = { authors: [ pubKey ], kinds: [ 12196, 42197 ] }
+                var subscription = [ "REQ", subId, filter, filter2 ];
+            }
+            this.send(JSON.stringify( subscription ));
+            // socket.send(JSON.stringify( subscription ));
+            //I decided to pull in my wallet when I get my 12196 event, only
+            //there are two problems with that: first, in its current position,
+            //it will check if I have a wallet (and potentially make a new one)
+            //*before* getting my 12196 event, and second, I have to think of
+            //where to move it. If I move it *inside* the function that gets
+            //my 12196 event, it won't fire when someone is first creating a
+            //store, because I only reach out for a 12196 event if the user
+            //is viewing or managing an existing store -- and if I just move
+            //it to *after* the part where they request my 12196 event, which
+            //I might do so that it waits to make a wallet til after one has
+            //been found, I will still have to ensure that it runs *after* my
+            //12196 event (if any) has been found -- which might be hard since
+            //that can take a variable amount of time
+            //so the solution is: make a function that checks if I am getting
+            //a 12196 event, which is the same thing as checking if there is a
+            //url query parameter of privkey or pubkey; if there is not, it
+            //should immediately run ensureWalletIsAvailable, otherwise it
+            //should wait for some variable to be marked true (one that I mark
+            //true when I get a result after searching nostr for my 12196
+            //event) and *then* run ensureWalletIsAvailable -- and this
+            //function should run when I connect to a relay, otherwise the
+            //ensureWalletIsAvailable function might not work, since it
+            //sometimes has to send a message to a relay
+            if ( auth_sub ) this.send( JSON.stringify( auth_sub ) );
+            if ( !$_GET[ "pubkey" ] && !$_GET[ "privkey" ] ) {
+                ensureWalletIsAvailable();
+            } else {
+                await getNote( "wallet_found_if_any" );
+                ensureWalletIsAvailable();
+            }
+            //if the user is the admin, fire off a message so that
+            //users can see if the admin "checked in" on their store
+            //recently
+            if ( $_GET[ "privkey" ] && !signedCheckinEvent ) await make_checkin_event();
+            if ( $_GET[ "privkey" ] ) this.send( JSON.stringify( [ "EVENT", signedCheckinEvent ] ) );
+        }
+        var openConnections = async () => {
+            var i; for ( i=0; i<relays.length; i++ ) {
+                var myrelay = relays[ i ];
+                relays_obj[ myrelay ] = new WebSocket( myrelay );
+                relays_obj[ myrelay ].addEventListener( 'open', openConnection );
+                relays_obj[ myrelay ].addEventListener( 'message', handleMessage );
+                await waitSomeSeconds( 1 );
+            }
+        }
+        openConnections();
+        // socket.addEventListener( 'open', openConnection );
+        if ( $_GET[ "pubkey" ] ) {
+            var whisper_data = {}
+            $( '.make_store' ).style.display = "none";
+        }
+        if ( $_GET[ "privkey" ] ) {
+            var html = `<div class="minicart"><span class="sales_count">0</span> new sales <button class="manage_sales_btn">Manage sales</button></div>`;
+            $( '.manage_sales_toolbar' ).innerHTML = html;
+            var manageSales = async () => {
+                $( '.splash_screen' ).style.display = "block";
+                $( '.products' ).style.display = "none";
+                $( '.store_maker' ).style.display = "none";
+                await getNote( "btc_price" );
+                await getNote( "wallet_found_if_any" );
+                $( '.splash_screen' ).style.display = "none";
+                $( '.store_maker' ).style.display = "inline";
+                $( '.products' ).style.display = "none";
+                $( '.preview_pane' ).style.display = "none";
+                $( '.store_maker' ).parentElement.style.display = "none";
+                $( '.blank_view' ).style.display = "block";
+                $( '.blank_view' ).innerHTML = `
+                    <div>
+                        <div style="display: flex; align-items: center; cursor: pointer;" onclick="$( '.blank_view' ).style.display = 'none';$( '.products' ).style.display = 'block';$( '.store_maker' ).parentElement.style.display = 'block';"><div style="display: flex; align-items: center; font-weight: bold; font-size: 3rem; margin-right: 0.5rem;">⇦</div><div style="font-size: 1.5rem; font-weight: bold;">Back</div></div>
+                        <div style="display: flex; flex-wrap: wrap; justify-content: space-between;"><div style="font-weight: bold;">Wallet</div><button class="connect_node">Connect your node</button></div><br>
+                        <div class="wallet" style="display: flex;justify-content: space-between;background-color: orange;padding: 0.5rem;align-items: center;"><div>Base layer balance: $<span class="usd_balance">0.00</span> (<span class="btc_balance">0</span>&nbsp;sats)</div><div><button class="withdraw">Withdraw</button></div></div><br>
+                `;
+                if ( ln_domain && ln_readkey ) $( '.blank_view' ).innerHTML += `                
+                        <div class="ln_wallet" style="display: flex;justify-content: space-between;background-color: lightblue;padding: 0.5rem;align-items: center;"><div>Lightning balance: $<span class="usd_balance">0.00</span> (<span class="btc_balance">0</span>&nbsp;sats)</div><div><button class="withdraw">Manage</button></div></div><br>
+                `;
+                $( '.blank_view' ).innerHTML += `
+                        <div class="visa_card" style="display: flex;justify-content: space-between;background-color: pink;padding: 0.5rem;align-items: center;"><div>Buy a visa gift card <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/Visa.svg/320px-Visa.svg.png" style="height: 1rem; vertical-align: middle;"></div><div><button class="visa_info">More info</button></div></div><br>
+                        <div style="font-weight: bold;">Sales</div><br>
+                        <div class="orders"></div>
+                    </div>
+                `;
+                $( '.connect_node' ).onclick = async () => {
+                    var content = `
+                        <p>
+                            Base-layer bitcoin payments on Magic Webstore are fully self-custodied by you. You alone have the private key to that money. However, for the lightning network, Magic Webstore automatically sets you up with a custodial lightning wallet from lnbits.com. Custodial solutions are typically easy to get started, but they usually stop operating at some point, so it's good to prepare for that.
+                        </p>
+                        <p>
+                            A really good way to ensure you don't lose your funds on lightning when lnbits eventually ceases operations is to run your own lightning node. If you don't know what that is, <a href="https://thebitcoinmanual.com/behind-btc/nodes/lightning-node/" target="_blank">click here</a>. I'm not finished making it easy to connect your store to your own lightning node, but in the meantime, if you're brave and you already have a lightning node running with your own lnbits instance, you can hook Magic Webstore up to your node with a little in-browser coding. Here are instructions:
+                        </p>
+                        <div class="tutorial_video_wrapper">
+                            <iframe src="https://www.youtube.com/embed/SyPTVPWXLm4" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen class="tutorial_video"></iframe>
+                        </div>
+                        <ul style="text-align: left;">
+                            <li>
+                                enter this into your browser console: console.log(&nbsp;localStorage[&nbsp;"wallet_info"&nbsp;]&nbsp;)
+                            </li>
+                            <li>
+                                it will show you your lnbits info in json format
+                            </li>
+                            <li>
+                                use a text editor to change the info in the json so that it shows info from your own node (or e.g. a voltage node)
+                            </li>
+                            <li>
+                                then enter this into your browser console: var&nbsp;json&nbsp;=&nbsp;your_modified_json (but replace your_modified_json with the text you modified using your text editor)
+                            </li>
+                            <li>
+                                then enter this into your browser console: localStorage[&nbsp;"wallet_info"&nbsp;]&nbsp;=&nbsp;JSON.stringify(json)
+                            </li>
+                            <li>
+                                then resubmit your store
+                            </li>
+                        </ul>
+                        <p>
+                            If you do all that, all the sats you earn on lightning will flow to your own node. But beware! If your lnbits instance is a hidden service on tor, as most of them are, people won't be able to send you funds on lightning unless they happen to be using a tor compatible web browser. So test it first to make sure it works how you want it to.
+                        </p>
+                        <p>
+                            If all of that stuff sounds confusing or daunting, you have a few options: first, you can learn. Don't be afraid to learn how bitcoin works so you can take full advantage of its awesome features. Second, you can freely ignore this message because the site works fine without running your own node. Just know that if you don't run your own node you can easily and quickly lose any money you have on the lightning network.
+                        </p>
+                        <p>
+                            A decent compromise is to daily withdraw any money you earn on lightning to a lightning wallet like breez or phoenix. Those phone wallets are easy to set up on your phone so give them a try! And let me know if you have any issues. On twitter I am @super_testnet.
+                        </p>
+                    `;
+                    showModal( content );
+                }
+                if ( ln_domain && ln_readkey ) {
+                    var ln_balance = await getLNBalance();
+                    $$( '.btc_balance' )[ 1 ].innerText = ln_balance;
+                    $$( '.usd_balance' )[ 1 ].innerText = satsToDollars( ln_balance ).toFixed( 2 );
+                }
+                sales.forEach( async function( sale, index ) {
+                    if ( "whisper_key" in sale[ 0 ] ) {
+                        var whisper_key = sale[ 0 ][ "whisper_key" ];
+                        var privkey = addKeys( privKey, whisper_key );
+                        var combokey = getCompressedPubkeyHexFromPrivkeyHex( privkey );
+                        var whisper_address = getNativeSegwitAddressFromPubkeyHex( combokey, mempoolNetwork );
+                        var txinfo = await addressReceivedMoneyInThisTx( whisper_address, mempoolNetwork );
+                        //if the address *currently* has less money than it originally held
+                        //then the order was shipped
+                        var current_utxos = await getUTXOs( privkey, mempoolNetwork );
+                        var current_balance = 0;
+                        current_utxos.forEach( function( utxo ) {
+                            current_balance = current_balance + Number( utxo[ "amount" ] );
+                        });
+                        if ( txinfo[ 2 ] > current_balance ) {
+                            txinfo[ 2 ] = current_balance;
+                            sale[ 3 ] = 1;
+                        }
+                    }
+                    if ( "pmthash" in sale[ 0 ] ) {
+                        var status = await checkInvoice( sale[ 0 ][ "pmthash" ] );
+                        var txinfo = [];
+                        txinfo[ 0 ] = sale[ 0 ][ "pmthash" ];
+                        txinfo[ 1 ] = 0;
+                        txinfo[ 2 ] = Number( ( status[ "details" ][ "amount" ] / 1000 ).toFixed( 0 ) );
+                        //the following line helps me determine later that it is a lightning payment
+                        txinfo[ 3 ] = true;
+                    }
+                    if ( $_GET[ "debug" ] == "true" || !txinfo[ 0 ] ) {
+                        if ( !txinfo[ 0 ] ) txinfo[ 0 ] = "abababababababababababababababababababababababababababababababab";
+                        if ( !txinfo[ 1 ] ) txinfo[ 1 ] = 0;
+                        if ( !txinfo[ 2 ] ) txinfo[ 2 ] = 0;
+                    }
+                    //don't display orders that are not paid for
+                    //but do show them if they only *seem* unpaid for but really are
+                    //because the money was withdrawn before they were shipped
+                    //I detect that (or try to) by checking if the item was shipped
+                    //because if the amount paid is zero *and* the amount was shipped
+                    //then I can be pretty confident the order was paid for (otherwise
+                    //the seller wouldn't mark it shipped) but then they just withdrew
+                    //their money before marking it as shipped -- the stuff about
+                    //changing txinfo items to other things is a tool that helps me
+                    //when trying stuff on testnet. Mainnet orders that got shipped
+                    //show up with undefined info that makes the total amount available
+                    //in my wallet "turn into" an NaN. By pretending there are values
+                    //and setting them to 0 I fixed that error while still allowing me
+                    //to spend the money that actually *is* in my wallet.
+                    if ( shipped_orders.includes( sale[ 2 ] ) ) {
+                        sale[ 3 ] = 1;
+                        if ( !txinfo[ 0 ] ) txinfo[ 0 ] = "abababababababababababababababababababababababababababababababab";
+                        if ( !txinfo[ 1 ] ) txinfo[ 1 ] = 0;
+                        txinfo[ 2 ] = 0;
+                    }
+                    var address_balance = txinfo[ 2 ];
+                    // var address_balance = await getAddressBalance( whisper_address, mempoolNetwork );
+                    var balance_in_dollars = satsToDollars( address_balance ).toFixed( 2 );
+                    if ( balance_in_dollars == "0.00" && !sale[ 3 ] ) return;
+                    if ( !txinfo[ 3 ] ) {
+                        $$( '.btc_balance' )[ 0 ].innerText = Number( $$( '.btc_balance' )[ 0 ].innerText ) + address_balance;
+                    } else {
+                        // $$( '.btc_balance' )[ 1 ].innerText = Number( $$( '.btc_balance' )[ 1 ].innerText ) + address_balance;
+                    }
+                    if ( !txinfo[ 3 ] ) {
+                        $$( '.usd_balance' )[ 0 ].innerText = satsToDollars( Number( $$( '.btc_balance' )[ 0 ].innerText ) ).toFixed( 2 );
+                    } else {
+                        // $$( '.usd_balance' )[ 1 ].innerText = satsToDollars( Number( $$( '.btc_balance' )[ 1 ].innerText ) ).toFixed( 2 );
+                    }
+                    if ( !private_keys.includes( privkey ) && !txinfo[ 3 ] ) private_keys.push( privkey );
+                    var bgcolor = "pink";
+                    var shipped_instructions = "click when shipped";
+                    if ( sale[ 3 ] ) {
+                        bgcolor = "lightgreen";
+                        shipped_instructions = "shipped";
+                    }
+                    var total = 0;
+                    var items = ``;
+                    var names_and_prices = [];
+                    sale[ 1 ].forEach( function( item, index ) {
+                        var item_price = Number( item[ "price" ] );
+                        var item_name = item[ "item" ];
+                        var claimed_price = Number( item[ "price" ] );
+                        if ( "id" in item && $( `[data-id="${item[ "id" ]}"]` ) ) {
+                            var the_item = $( `[data-id="${item[ "id" ]}"]` );
+                            item_price = Number( the_item.getElementsByClassName( "price" )[ 0 ].value ) * 100;
+                            item_name = the_item.getElementsByTagName( "input" )[ 0 ].value;
+                        }
+                        total = total + item_price;
+                        items += `<div class="minicart" style="display: flex; justify-content: space-between; text-align: left;"><div class="product_name"></div><div class="product_price" style="text-align: right;align-self: center;"></div></div>`;
+                        names_and_prices.push( [ item_name, item_price ] );
+                    });
+                    var paid_amount = balance_in_dollars;
+                    //if the item is shipped, display the amount as paid even if the address is empty
+                    //because the address probably *is* empty -- that just means the merchant withdrew
+                    //the money
+                    if ( sale[ 3 ] ) paid_amount = ( total / 100 ).toFixed( 2 );
+                    var delivery_info = (sale[ 0 ][ "shipping_info" ]) ? sale[ 0 ][ "shipping_info" ]:sale[ 0 ][ "edelivery_info" ];
+                    var order = `
+                        <div class="minicart order" style="background-color: ${bgcolor};" data-order_id="${sale[ 2 ]}"><div class="order_box">Delivery info:<br><div class="delivery_info"></div></div><div class="payment_info" style="text-align: right;align-self: center;">They paid: $${paid_amount} <button class="order_details" onclick="if ( this.parentElement.parentElement.nextElementSibling.style.display != 'none' ) this.parentElement.parentElement.nextElementSibling.style.display = 'none'; else this.parentElement.parentElement.nextElementSibling.style.display = 'block';">details</button> <button class="click_when_shipped" onclick="if ( sales[ ${index} ][ 3 ] ) return;var conf = confirm( 'Are you sure you want to mark this order as shipped?' );if ( !conf ) return;this.parentElement.parentElement.style.backgroundColor = 'lightgreen';this.innerText = 'shipped';this.onclick = () => {return false};sales[ ${index} ][ 3 ] = 1;$( '.sales_count' ).innerText = Number( $( '.sales_count' ).innerText ) - 1;shipped_orders.push( sales[ ${index} ][ 2 ] );localStorage.shipped_orders = JSON.stringify( shipped_orders );labelAsShipped( this.parentElement.parentElement.getAttribute( 'data-order_id' ) );">${shipped_instructions}</button></div></div>
+                    `;
+                    if ( !txinfo[ 3 ] ) {
+                        order += `
+                            <div style="display: none; border: 1px solid black; border-radius: 1rem; padding: 1rem; margin-bottom: 1rem;"><div style="font-weight: bold;">Details</div><br>${items}<div style="text-align: right;">Total they owed: $${( total / 100 ).toFixed( 2 )}</div><div style="text-align: right;">Total they paid: $${paid_amount}</div><div style="text-align: right;"><a href="https://mempool.space/${mempoolNetwork}tx/${txinfo[ 0 ]}:${txinfo[ 1 ]}" target="_blank">Inspect transaction</a></div></div>
+                        `;
+                    } else {
+                        order += `
+                            <div style="display: none; border: 1px solid black; border-radius: 1rem; padding: 1rem; margin-bottom: 1rem;"><div style="font-weight: bold;">Details</div><br>${items}<div style="text-align: right;">Total they owed: $${( total / 100 ).toFixed( 2 )}</div><div style="text-align: right;">Total they paid: $${paid_amount}</div><div style="text-align: right;"><a href="${JSON.parse( localStorage.wallet_info )[ "wallet_url" ]}" target="_blank">Inspect transaction</a></div></div>
+                        `;
+                    }
+                    $( '.orders' ).innerHTML += order;
+                    $$( '.delivery_info' )[ $$( '.delivery_info' ).length - 1 ].innerText = delivery_info;
+                    var existing_number = $$( '.blank_view .minicart .product_name' ).length;
+                    names_and_prices.forEach( function( item, index ) {
+                        //must be -2 the first time and -1 the second time
+                        //names_and_prices.length is 2 so I can emulate -2 with - names_and_prices.length - index
+                        //then the second time it will be names_and_prices.length - 1 which is -1
+                        $$( '.blank_view .minicart .product_name' )[ existing_number - ( names_and_prices.length - index ) ].innerText = item[ 0 ];
+                        $$( '.blank_view .minicart .product_price' )[ existing_number - ( names_and_prices.length - index ) ].innerText = "$" + ( item[ 1 ] / 100 ).toFixed( 2 )
+                    });
+                });
+                $$( '.withdraw' )[ 0 ].onclick = async () => {
+                    var some_unshipped_items = false;
+                    sales.forEach( function( sale ) {
+                        if ( !sale[ 3 ] ) some_unshipped_items = true;
+                    });
+                    if ( some_unshipped_items ) {
+                        alert( `You cannot withdraw your money til you ship all your orders.` );
+                        return;
+                    }
+                    var from_amount = 0;
+                    var i; for ( i=0; i<private_keys.length; i++ ) {
+                        var utxos_in_this_address = await getUTXOs( private_keys[ i ], mempoolNetwork );
+                        utxos_in_this_address.forEach( function( utxo ) {
+                            available_utxos.push( utxo );
+                            from_amount = from_amount + utxo[ "amount" ];
+                        });
+                    }
+                    var destino = prompt( "Enter the bitcoin address where you want your sats to go" );
+                    if ( !destino || !isValidAddress( destino ) ) {
+                        alert( "You entered an invalid bitcoin address. Please try again." );
+                        return;
+                    }
+                    var base_size = 200;
+                    var full_size = base_size + ( available_utxos.length * 50 );
+                    var fee_options = await getThreeFeeRates( mempoolNetwork );
+                    var sats_per_byte = prompt( `Please enter a fee rate as a number. Specifically, the number of sats per byte you want to pay. The minimum rate is ${fee_options[ 0 ]}, the average rate is ${fee_options[ 1 ]}, and the urgent rate is ${fee_options[ 2 ]}.` );
+                    var sats_per_byte = Number( sats_per_byte );
+                    if ( !sats_per_byte ) {
+                        alert( "You entered an invalid fee rate. You must enter a number greater than 0, such as 5, 10, or 25. Please try again." );
+                        return;
+                    }
+                    var txfee = sats_per_byte * full_size;
+                    if ( from_amount - txfee < 294 ) {
+                        alert( `Unfortunately you do not have enough sats to pay the mining fee necessary to withdraw your money. Your shop only has ${from_amount} sats available and your mining fee would be ${txfee} sats. Try using a lower mining fee rate or make a few more sales to increase the amount of sats you have available to withdraw.` );
+                        return;
+                    }
+                    var txhex = craftTransaction( available_utxos, from_amount - txfee, destino, mempoolNetwork );
+                    var conf = confirm( `Click ok if this is what you want to do:\n\nAmount this shop has: ${from_amount} sats\n\nMining fee for this tx: ${txfee} sats\n\nAmount you will receive: ${from_amount - txfee} sats\n\nAmount this shop will have leftover: 0 sats\n\nDestination address: ${destino}\n\n` );
+                    if ( !conf ) return;
+                    var txid = await pushBTCpmt( txhex, mempoolNetwork );
+                    if ( txid && txid != "error" ) {
+                        sessionStorage.removeItem( "modal_cleared" );
+                        var content = `<p>Success! You can <a href="https://mempool.space/${mempoolNetwork}tx/${txid}:0" target="_blank">view your transaction here</a></p>`;
+                        showModal( content, true );
+                        await getNote( "modal_cleared" );
+                    } else {
+                        sessionStorage.removeItem( "modal_cleared" );
+                        var content = `<p>Oh no, there was a transaction failure! Try broadcasting your raw transaction <a href="https://mempool.space/${mempoolNetwork}tx/push" target="_blank">here</a></p><p>${txhex}</p>`;
+                        showModal( content, true );
+                        await getNote( "modal_cleared" );
+                        // alert( `Oh no, there was a transaction failure! Try broadcasting your raw transaction here: https://mempool.space/${mempoolNetwork}tx/push\n\n${txhex}` );
+                    }
+                    console.log( "raw tx:", txhex );
+                    await waitSomeSeconds( 2 );
+                    $( '.manage_sales_btn' ).click();
+                }
+                if ( $$( '.withdraw' )[ 1 ] ) $$( '.withdraw' )[ 1 ].onclick = async () => {
+                    window.open( JSON.parse( localStorage[ "wallet_info" ] )[ "wallet_url" ], '_blank' );
+                }
+                $( '.visa_info' ).onclick = () => {
+                    showModal( `<img src="https://upload.wikimedia.org/wikipedia/commons/f/f4/Hsbc-card.jpg" style="width: 100%; max-width: 300px"><p>If you need US dollars for business purposes, use your bitcoin earnings to buy a virtual visa gift card. Any amount greater than $5.00 will instantly get you a digital copy of the card's 16 digit number and 3 digit CVC number. Use a zip code of 94404 (Visa headquarters) if necessary to enter the card into your regular point of sale system. You can even order a physical card for a small fee.</p><p><button class="buy_visa">Buy visa card</button></p>` );
+                    $( '.buy_visa' ).onclick = async () => {
+                        window.open( `https://app.thebitcoincompany.com/giftcard/GiftCard_83215b023391`, '_blank' );
+                    }
+                }
+            }
+            $( '.manage_sales_btn' ).onclick = manageSales;
+        }
+        $( '.connect_nostr' ).onclick = async () => {
+            waiting_for_auth = true;
+            if ( window.nostr ) {
+                var primary_relay = Object.keys( relays_obj )[ 0 ];
+                showModal( `<p style="font-weight: bold;">Step 1 of 2. Let's find your profile</p><p>Enter your regular nostr account's npub and a relay you use. We'll try to find your profile.</p><p><input class="auth_npub" placeholder="npub1..."></p><p><input class="auth_relay" placeholder="wss://..."></p><p><button class="submit_auth">Submit</button></p>` );
+                $( '.submit_auth' ).onclick = async () => {
+                    var users_npub = $( '.auth_npub' ).value;
+                    if ( !users_npub || !users_npub.startsWith( "npub1" ) ) return alert( "That is not a valid npub, please try again. And remember, the relay must start with npub1" );
+                    var users_relay = $( '.auth_relay' ).value;
+                    if ( !users_relay || !users_relay.startsWith( "wss://" ) ) return alert( "That is not a valid relay, please try again. And remember, the relay must start with wss://" );
+                    showModal( `loading...(if this is still loading after 30 seconds, refresh and try again using a different relay)` );
+                    var profile = await getMeta( pubkeyFromNpub( users_npub ), users_relay, true );
+                    if ( profile == "time is up" ) {
+                        modalVanish();
+                        return showModal( "<p>We could not load your profile at that relay. Please try again. Troubleshooting tips:</p><p>(1) Try using a different relay.</p><p>(2) Resubmit your profile in your regular nostr client before trying again to ensure that all your relays have a recent copy. This helps because some relays return recent events faster than old events, and the profile getter on Magic Webstore times out if the relay takes too long.</p><p>(3) In some clients you need to make a minor change, e.g. to your bio, before you can resubmit it.</p>" );
+                    }
+                    //rebroadcast the user's profile to all their relays
+                    await eventWasReplayedTilSeen( profile, primary_relay );
+                    Object.keys( relays_obj ).forEach( function( relay ) {
+                        relays_obj[ relay ].send( JSON.stringify( [ "EVENT", profile ] ) );
+                    });
+                    var auth_sig = await nobleSecp256k1.schnorr.sign( pubKey, privKey );
+                    var user_pubkey = await window.nostr.getPublicKey();
+                    var note = hexToBase64( auth_sig ) + "|" + hexToBase64( textToHex( Object.keys( relays_obj )[ 0 ] ) );
+                    console.log( "here is the note:", note, Object.keys( relays_obj )[ 0 ] );
+                    var encrypted = await window.nostr.nip04.encrypt( auth_pubkey, note );
+                    var event = {
+                        "content"    : encrypted,
+                        "created_at" : Math.floor( Date.now() / 1000 ),
+                        "kind"       : 4,
+                        "tags"       : [["p", auth_pubkey]],
+                        "pubkey"     : user_pubkey,
+                    }
+                    var eventArray = [
+                        0,
+                        event['pubkey'],
+                        event['created_at'],
+                        event['kind'],
+                        event['tags'],
+                        event['content']
+                    ];
+                    var eventData = JSON.stringify( eventArray );
+                    event.id  = sha256( eventData ).toString( 'hex' );
+                    console.log( "here is the event:", event );
+                    var signedEvent = await window.nostr.signEvent( event );
+                    if ( typeof( signedEvent ) == "string" ) {
+                        event.sig = signedEvent;
+                    } else {
+                        event.sig = signedEvent.sig;
+                    }
+                    showModal( "Authenticating your store..." );
+                    await eventWasReplayedTilSeen( event, Object.keys( relays_obj )[ 0 ] );
+                    waiting_for_auth = false;
+                    showModal( `Success, your store is now authenticated with your regular nostr account. If the "Store Owner" badge doesn't show up on the frontend, resubmit your store by clicking the "Submit" button on your backend.` );
+                }
+            } else {
+                var relay_list = `<ul style="background-color: tan; padding: 1rem;">`;
+                Object.keys( relays_obj ).forEach( item => {
+                    relay_list += `<li>${item}</li>`;
+                });
+                relay_list += `</ul>`;
+                var auth_sig = await nobleSecp256k1.schnorr.sign( pubKey, privKey );
+                showModal( `<p style="font-weight: bold;">Step 1 of 4. Let's find your profile</p><p>Enter your regular nostr account's npub and a relay you use. We'll try to find your profile.</p><p><input class="auth_npub" placeholder="npub1..."></p><p><input class="auth_relay" placeholder="wss://..."></p><p><button class="submit_auth">Submit</button></p>` );
+                $( '.submit_auth' ).onclick = async () => {
+                    var users_npub = $( '.auth_npub' ).value;
+                    if ( !users_npub || !users_npub.startsWith( "npub1" ) ) return alert( "That is not a valid npub, please try again. And remember, the relay must start with npub1" );
+                    var users_relay = $( '.auth_relay' ).value;
+                    if ( !users_relay || !users_relay.startsWith( "wss://" ) ) return alert( "That is not a valid relay, please try again. And remember, the relay must start with wss://" );
+                    var attestation_text = hexToBase64( auth_sig ) + "|" + hexToBase64( textToHex( users_relay ) );
+                    showModal( `loading...(if this is still loading after 30 seconds, refresh and try again using a different relay)` );
+                    var profile = await getMeta( pubkeyFromNpub( users_npub ), users_relay, true );
+                    //rebroadcast the user's profile to all their relays
+                    Object.keys( relays_obj ).forEach( function( relay ) {
+                        relays_obj[ relay ].send( JSON.stringify( [ "EVENT", profile ] ) );
+                    });
+                    if ( profile == "time is up" ) {
+                        modalVanish();
+                        return showModal( "<p>We could not load your profile at that relay. Please try again. Troubleshooting tips:</p><p>(1) Try using a different relay.</p><p>(2) Resubmit your profile in your regular nostr client before trying again to ensure that all your relays have a recent copy. This helps because some relays return recent events faster than old events, and the profile getter on Magic Webstore times out if the relay takes too long.</p><p>(3) In some clients you need to make a minor change, e.g. to your bio, before you can resubmit it.</p>" );
+                    }
+                    var message = encrypt( auth_privkey, pubkeyFromNpub( users_npub ), "This is your webstore. Please reply with your proof of ownership from step 4." );
+                    var event = {
+                        "content"    : message,
+                        "created_at" : Math.floor( Date.now() / 1000 ),
+                        "kind"       : 4,
+                        "tags"       : [ [ "p", pubkeyFromNpub( users_npub ) ] ],
+                        "pubkey"     : auth_pubkey,
+                    }
+                    var signedEvent = await getSignedEvent(event, auth_privkey);
+                    Object.keys( relays_obj ).forEach( function( relay ) {
+                        relays_obj[ relay ].send( JSON.stringify( [ "EVENT", signedEvent ] ) );
+                    });
+                    await eventWasReplayedTilSeen( signedEvent, users_relay );
+                    var event = {
+                        "content"    : JSON.stringify({"name":"Your webstore","about":"","picture":""}),
+                        "created_at" : Math.floor( Date.now() / 1000 ),
+                        "kind"       : 0,
+                        "tags"       : [],
+                        "pubkey"     : auth_pubkey,
+                    }
+                    var signedEvent = await getSignedEvent(event, auth_privkey);
+                    Object.keys( relays_obj ).forEach( function( relay ) {
+                        relays_obj[ relay ].send( JSON.stringify( [ "EVENT", signedEvent ] ) );
+                    });
+                    await eventWasReplayedTilSeen( signedEvent, users_relay );
+                    showModal( `<p>We found your profile!</p><p style="font-weight: bold;">Step 2 of 4. Connect your store's relays</p><p>Ensure your regular nostr account is connected to one or more of these relays</p>${relay_list}<p><button class="confirm_connection">I'm connected</button></p>` );
+                    $( '.confirm_connection' ).onclick = () => {
+                        showModal( `<p style="font-weight: bold;">Step 3 of 4. Open a DM</p>Copy this npub into your regular nostr client and prepare to send it a DM (but don't hit Send yet). If you can't find it, consider using https://iris.to, you can use its search function to find it and then click Message.</p><pre class="attestation_text">${pubkeyToNpub( auth_pubkey )}</pre><p><button class="ready_for_dm">I'm ready</button></p>` );
+                        $( '.ready_for_dm' ).onclick = () => {
+                            showModal( `<p style="font-weight: bold;">Step 4 of 4. Send the proof of ownership</p><p>The following text contains a base64-encoded proof of ownership of this store. Send it as a DM to the npub from the previous step and you should see a confirmation message on this screen. If the confirmation message does not appear quickly, try again.</p><pre class="attestation_text">${attestation_text}</pre>` );
+                        }
+                    }
+                }                
+            }
+        }
+    </script>
+    <script>
+        function checkHeartbeat() {
+            setTimeout( () => {
+                //it is important that this be inside the timeout otherwise
+                //it may detect a connection loss on pageload
+                Object.keys( relays_obj ).forEach( function( relay ) {
+                    if ( relays_obj[ relay ].readyState != 1 ) {
+                        var msg = `You lost your connection to this relay: ${relay}. If you receive this message several times, please refresh your browser. If the issue persists, `;
+                        if ( !$_GET[ "privkey" ] ) {
+                            msg += `please ask the store owner to fix the issue.`;
+                        } else {
+                            msg += `please replace the relay (your current set of relays is in your url bar) with another one from this list: https://nostr.watch, then press enter, then resubmit your store with your new set of relays, then click "view store" and share your updated store link publicly so that people stop using the old one with the relay that isn't working. If this message is confusing, please ask the developer of this app, Super Testnet, for assistance by raising an issue on his github: github.com/supertestnet/superstore/`;
+                        }
+                        relays_obj[ relay ] = new WebSocket( relay );
+                        relays_obj[ relay ].removeEventListener( 'open', openConnection );
+                        relays_obj[ relay ].removeEventListener( 'message', handleMessage );
+                        relays_obj[ relay ] = new WebSocket( relay );
+                        relays_obj[ relay ].addEventListener( 'message', handleMessage );
+                        relays_obj[ relay ].addEventListener( 'open', openConnection );
+                        if ( relays_i_connected_to.length < 2 && $_GET[ "pubkey" ] ) showModal( msg );
+                        if ( $_GET[ "privkey" ] ) {
+                            setTimeout( () => {
+                                if ( relays_obj[ Object.keys( relays_obj )[ 0 ] ].readyState != 1 ) showModal( msg );
+                            }, 5000 );
+                        }
+                    }
+                });
+                checkHeartbeat();
+            }, 10000 );
+        }
+        async function init() {
+            $( '.splash_screen' ).style.display = "none";
+            $( '.make_store' ).style.display = "block";
+            sessionStorage[ "btc_price" ] = await getBitcoinPrice();
+            checkHeartbeat();
+        }
+        init();
+    </script>
+    <div class="toast"></div>
+    <div class="black-bg"></div>
+    <div class="modal"></div>
+</body>
 </html>

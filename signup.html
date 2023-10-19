@@ -6,9 +6,166 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta charset="utf-8" />
     <meta property="twitter:card" content="summary_large_image" />
+    <link rel="shortcut icon" type="image/png" href="favicon.png">
+    <script src="https://bundle.run/noble-secp256k1@1.2.14"></script>
 
     <style data-tag="reset-style-sheet">
-      html {  line-height: 1.15;}body {  margin: 0;}* {  box-sizing: border-box;  border-width: 0;  border-style: solid;}p,li,ul,pre,div,h1,h2,h3,h4,h5,h6,figure,blockquote,figcaption {  margin: 0;  padding: 0;}button {  background-color: transparent;}button,input,optgroup,select,textarea {  font-family: inherit;  font-size: 100%;  line-height: 1.15;  margin: 0;}button,select {  text-transform: none;}button,[type="button"],[type="reset"],[type="submit"] {  -webkit-appearance: button;}button::-moz-focus-inner,[type="button"]::-moz-focus-inner,[type="reset"]::-moz-focus-inner,[type="submit"]::-moz-focus-inner {  border-style: none;  padding: 0;}button:-moz-focus,[type="button"]:-moz-focus,[type="reset"]:-moz-focus,[type="submit"]:-moz-focus {  outline: 1px dotted ButtonText;}a {  color: inherit;  text-decoration: inherit;}input {  padding: 2px 4px;}img {  display: block;}html { scroll-behavior: smooth  }
+      html {  line-height: 1.15; font-family: Inter;}body {  margin: 0;}* {  box-sizing: border-box;  border-width: 0;  border-style: solid;}p,li,ul,pre,div,h1,h2,h3,h4,h5,h6,figure,blockquote,figcaption {  margin: 0;  padding: 0;}button {  background-color: transparent;}button,input,optgroup,select,textarea {  font-family: inherit;  font-size: 100%;  line-height: 1.15;  margin: 0;}button,select {  text-transform: none;}button,[type="button"],[type="reset"],[type="submit"] {  -webkit-appearance: button;}button::-moz-focus-inner,[type="button"]::-moz-focus-inner,[type="reset"]::-moz-focus-inner,[type="submit"]::-moz-focus-inner {  border-style: none;  padding: 0;}button:-moz-focus,[type="button"]:-moz-focus,[type="reset"]:-moz-focus,[type="submit"]:-moz-focus {  outline: 1px dotted ButtonText;}a {  color: inherit;  text-decoration: inherit;}input {  padding: 2px 4px;}img {  display: block;}html { scroll-behavior: smooth  }
+    </style>
+    <style>
+        html {
+                /* max-width: 120ch; */
+                padding: 0rem 0rem;
+                margin: auto;
+                line-height: 1.25;
+                background-color: #062c34;
+                color: white;
+            }
+        h1 {
+            font-size: 2rem;
+            color: white;
+        }
+        h2 {
+            font-size: 1.5rem;
+            color: white;
+        }
+        input {
+            line-height: 1.25;
+            width: 100%;
+            height: 1.8rem;
+            font-size: 1.15rem;
+            border: 1px solid grey;
+        }
+        .border {
+            border: 1px solid black;
+        }
+        .row {
+            display: flex;
+            justify-content: space-between;
+            filter: drop-shadow(0 0 0px #000);
+            background-color: #062c34;
+            margin-bottom: 1rem;
+            margin-top: 1rem;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            color: white;
+        }
+        .video {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex: 5;
+        }
+        .video img {
+            max-width: 450px;
+        }
+        .basics {
+            display: flex;
+            flex-direction: column;
+            flex: 4;
+            align-items: center;
+            padding: 1rem;
+        }
+        .big_title {
+            text-align: center;
+        }
+        .simple_desc {
+            width: 90%;
+            text-align: center;
+        }
+        .big_buttons {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+        .big_button {
+            padding: 1rem;
+            background-color: red;
+            color: white;
+            font-weight: bold;
+            text-align: center;
+            min-width: 8rem;
+            cursor: pointer;
+        }
+        .genie {
+            max-height: 15rem;
+        }
+        .signup {
+            display: none;
+            border: 1px solid white;
+            border-radius: 1rem;
+            padding: 1rem;
+            max-width: 25rem;
+            margin: auto;
+            background-color: #062c34;
+            filter: drop-shadow(0 0 3px #000);
+            color: white;
+        }
+        .circle_row {
+            display: flex;
+            align-items: center;
+        }
+        .circle {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 4rem;
+            height: 4rem;
+            border: 1px solid white;
+            border-radius: 2rem;
+            margin: 1rem;
+        }
+        .blue {
+            color: yellow;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+        .black-bg {
+            display: none;
+            width: 100%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: black;
+            opacity: .5;
+            width: 100vw;
+            height: 100vh;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            box-sizing: border-box;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%,-50%);
+            width: 90%;
+            max-width: 560px;
+            background-color: #062c34;
+            border-radius: 1rem;
+            padding: 20px;
+            color: white;
+            text-align: center;
+            word-wrap: break-word;
+        }
+        .back_btn {
+            display: none;
+            color: white;
+            font-weight: bold;
+        }
+        @media screen and (max-width: 700px) {
+            .row {
+                display: block;
+            }
+        @media screen and (max-width: 400px) {
+            .big_buttons {
+                display: block;
+            }
+            .genie {
+                max-height: initial;
+                width: 100%;
+            }
+        }
     </style>
     <style data-tag="default-style-sheet">
       html {
@@ -30,16 +187,59 @@
     </style>
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&amp;display=swap"
+      /* href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&amp;display=swap" */
       data-tag="font"
     />
     <!--This is the head section-->
     <!-- <style> ... </style> -->
+    <script>
+        var $ = document.querySelector.bind( document );
+        var $$ = document.querySelectorAll.bind( document );
+        var url_params = new URLSearchParams( window.location.search );
+        var url_keys = url_params.keys();
+        var $_GET = {}
+        for ( var key of url_keys ) $_GET[ key ] = url_params.get( key );
+        var relays = [
+            "wss://nostrue.com",
+            "wss://nostr.noones.com",
+            "wss://nos.lol"
+        ]
+    </script>
+    <script>
+        function bytesToHex( bytes ) {
+            return bytes.reduce( ( str, byte ) => str + byte.toString( 16 ).padStart( 2, "0" ), "" );
+        }
+        function textToHex( text ) {
+            var encoder = new TextEncoder().encode( text );
+            return [...new Uint8Array(encoder)]
+                .map( x => x.toString( 16 ).padStart( 2, "0" ) )
+                .join( "" );
+        }
+        function hexToText( hex ) {
+            var bytes = new Uint8Array(Math.ceil(hex.length / 2));
+            for (var i = 0; i < hex.length; i++) bytes[i] = parseInt(hex.substr(i * 2, 2), 16);
+            var text = new TextDecoder().decode( bytes );
+            return text;
+        }
+        function modalVanish() {
+            $( ".black-bg" ).style.display = "none";
+            $( ".modal" ).style.display = "none";
+        }
+        function showModal( content, block_til_clear ) {
+            if ( block_til_clear ) var fn = `modalVanish();sessionStorage[ 'modal_cleared' ] = true;`; else var fn = `modalVanish();`;
+            $( ".modal" ).innerHTML = `<div style="position: absolute;right: 1rem;top: 0.5rem;font-size: 2rem; cursor: pointer;" onclick="${fn}">&times;</div>`;
+            $( ".modal" ).innerHTML += `<div style="overflow-y: scroll; max-height: 80vh; margin-top: 1.5rem;">${content}</div>`;
+            $( ".black-bg" ).style.display = "block";
+            $( ".modal" ).style.display = "block";
+        }
+    </script>
   </head>
   <body>
-    <link rel="stylesheet" href="./style.css" />
+    <link rel="stylesheet" href="style.css" />
     <div>
-      <link href="./index.css" rel="stylesheet" />
+      <link href="index.css" rel="stylesheet" />
+
+    
 
       <div class="home-container">
         <header data-thq="thq-navbar" class="home-navbar">
@@ -140,52 +340,114 @@
             </div>
           </div>
         </header>
+
+        
         
         <section class="home-project">
-          <div class="home-understand">
-            <div class="home-content13">
-              <span class="home-caption10">Sign up</span>
-              <div class="home-heading02">
-                <h2 class="home-header06">Understand the authentication process</h2>
-                <p class="home-header07">
-                    SatsToGo employs auth strings instead of the conventional usernames and passwords. Be sure to keep a backup of your auth string, as it serves as the sole means of accessing your event.
-                </p>
-              </div>
-              <button class="home-view3 button-link button">
-                <span class="home-caption12">01.</span>
-                <span><ul><b>Generate</b></ul> your auth string</span>
-                <img
-                  alt="image"
-                  src="public/Icons/arrow.svg"
-                  class="home-image22"
-                />
-              </button>
-              <button class="home-view3 button-link button">
-                <span class="home-caption12">02.</span>
-                <span><ul><b>Back up</b></ul> your auth string</span>
-                <img
-                  alt="image"
-                  src="public/Icons/arrow.svg"
-                  class="home-image22"
-                />
-              </button>
-              <button class="home-view3 button-link button">
-                <span class="home-caption12">03.</span>
-                <span><ul><b>Log in</b></ul> with your auth string</span>
-                <img
-                  alt="image"
-                  src="public/Icons/arrow.svg"
-                  class="home-image22"
-                />
-              </button>
-            </div>
-            <img
-              alt="image"
-              src="public/group%202415.svg"
-              class="home-image23"
-            />
-          </div>
-        </section>
+
+
+            <div class="explain">
+                    <div class="row">
+                        <div class="basics">
+                            <h2 class="big_title home-header01">
+                                Understand the authentication process
+                            </h2>
+                            <br>
+                            <br>
+                            <p class="simple_desc">
+                                Sats To Go! is focused on rewarding punctuality.
+                            </p>
+                            <br>
+                            <br>
+                            <div class="big_buttons">
+                                <div class="button big_button signup_btn">Sign&nbsp;up</div>
+                                <span>&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                                <div class="button big_button login_btn">Log&nbsp;in</div>
+                            </div>
+                            <img
+                                alt="image"
+                                src="public/group%202415.svg"
+                                class="home-image23"
+                            /> 
+                        </div>
+                    </div>
+                </div>
+                <div class="signup">
+                    <div style="text-align: right; margin: auto; margin-bottom: 1rem; max-width: 25rem; color: white; font-weight: bold;"><button class="back_btn"> <-- </button></div>
+                    <div style="text-align: center;">
+                        Sats To Go! does not use traditional usernames and passwords, it uses magic strings. Make sure to back yours up! Your magic string is the only way to access your account.<br>
+                    </div>
+                    <div class="circle_row">
+                        <div class="circle"><div>1</div></div>
+                        <div class="instruction"><span class="blue" onclick="genString()">Generate</span> your magic string</div>
+                    </div>
+                    <div style="flex-direction: column; justify-content: center; align-items: center; word-wrap: break-word; overflow-wrap: anywhere; padding: 1rem; border: 1px solid black; margin-top: 1rem; display: none;" class="magic_string_box"><p style="font-weight: bold; text-decoration: underline;">Your magic string</p><div class="magic_string"></div></div>
+                    <div class="circle_row">
+                        <div class="circle"><div>2</div></div>
+                        <div class="instruction"><span class="blue" onclick="backupString()">Back up</span> your magic string</div>
+                    </div>
+                    <div class="circle_row">
+                        <div class="circle"><div>3</div></div>
+                        <div class="instruction"><span class="blue" onclick="useString()">Log in</span> with your magic string</div>
+                    </div>
+                    <img
+                        alt="image"
+                        src="public/group%202415.svg"
+                        class="home-image23"
+                    />
+                </div>
+                
+                <script>
+                    var useString = () => {
+                        var ms = prompt( "Please enter your magic string" );
+                        if ( !ms ) return;
+                        var privkey = ms.substring( 0, 64 );
+                        var relays = hexToText( ms.substring( 64 ) );
+                        var index = window.location.pathname.indexOf( "signup.htm" ) > -1 ? window.location.pathname.indexOf( "signup.htm" ):100000;
+                        var extra_slash = window.location.pathname.substring( 0, index ).endsWith( "/" ) ? "":"/";
+                        var port = "";
+                        if ( window.location.port ) port = `:${window.location.port}`;
+                        var url = window.location.protocol + "//" + window.location.hostname + port + window.location.pathname.substring( 0, index ) + extra_slash + "dashboard.html?privkey=" + privkey + "&relays=" + encodeURI( relays );
+                        window.location.href = url;
+                    }
+                    var genString = () => {
+                        $( '.magic_string_box' ).style.display = "flex";
+                        $( '.magic_string' ).innerText = "•";
+                        $( '.magic_string' ).style.fontSize = "250%";
+                        setTimeout( function() {$( '.magic_string' ).innerText = "••";}, 200 );
+                        setTimeout( function() {$( '.magic_string' ).innerText = "•••";}, 400 );
+                        setTimeout( function() {
+                            $( '.magic_string_box' ).innerHTML = `<p style="font-weight: bold; text-decoration: underline;">Your magic string</p><div class="magic_string" style="text-align: center;"></div>`;
+                            $( '.magic_string' ).style.fontSize = "100%";
+                            $( '.magic_string' ).innerText = "00" + bytesToHex( nobleSecp256k1.utils.randomPrivateKey() ).substring( 2, 64 ) + textToHex( JSON.stringify( relays ) );
+                        }, 600 );
+                    }
+                    var backupString = () => {
+                        var content = `<p>Did you back up your magic string? Save it somewhere safe where only you can access it. Your magic string is the only way to access your store. If you lose it, you will not only lose access to your store but also to any money you received since the last time you withdrew. Make sure you back this up before continuing:</p><p style="text-decoration: underline; font-weight: bold;">Your magic string</p><p>${$( '.magic_string' ).innerText}</p>`;
+                        showModal( content );
+                    }
+                </script>
+                <script>
+                    $( '.signup_btn' ).onclick = () => {
+                        $( '.explain' ).style.display = "none";
+                        $( '.signup_btn' ).style.display = "none";
+                        $( '.back_btn' ).style.display = "inline";
+                        $( '.signup' ).style.display = "block";
+                        $( '.magic_string_box' ).style.display = "none";
+                    }
+                    $( '.login_btn' ).onclick = () => {
+                        useString();
+                    }
+                    $( '.back_btn' ).onclick = () => {
+                        $( '.explain' ).style.display = "block";
+                        $( '.signup_btn' ).style.display = "inline";
+                        $( '.back_btn' ).style.display = "none";
+                        $( '.signup' ).style.display = "none";
+                    }
+                </script>
+                <div class="black-bg"></div>
+                <div class="modal"></div>
+
         
         <div>
           <div class="home-container5">
