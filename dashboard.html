@@ -323,11 +323,11 @@
         for ( var key of url_keys ) $_GET[ key ] = url_params.get( key );
         var mempoolNetwork = "";
         if ( $_GET[ "network" ] == "testnet" ) mempoolNetwork = $_GET[ "network" ] + "/";
-        var index = window.location.pathname.indexOf( "index.htm" ) > -1 ? window.location.pathname.indexOf( "index.htm" ):100000;
+        var index = window.location.pathname.indexOf( "dashboard.htm" ) > -1 ? window.location.pathname.indexOf( "dashboard.htm" ):100000;
         var extra_slash = window.location.pathname.substring( 0, index ).endsWith( "/" ) ? "":"/";
         var port = "";
         if ( window.location.port ) port = `:${window.location.port}`;
-        if ( !$_GET[ "privkey" ] && !$_GET[ "pubkey" ] ) window.location.href = window.location.href = window.location.protocol + "//" + window.location.hostname + port + window.location.pathname.substring( 0, index ) + extra_slash + "onboard.html";
+        if ( !$_GET[ "privkey" ] && !$_GET[ "pubkey" ] ) window.location.href = window.location.href = window.location.protocol + "//" + window.location.hostname + port + window.location.pathname.substring( 0, index ) + extra_slash + "signup.html";
     </script>
     <!-- Fourth Script tag end -->
 
