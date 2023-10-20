@@ -1515,9 +1515,9 @@
             >
 
               <button class="home-button button-clean button2"><a href="index.html">Home</a></button>
-              <button class="home-button1 button-clean button2">Features</button>
-              <button class="home-button2 button-clean button2">User-Journey</button>
-              <button class="home-button3 button-clean button2">Team</button>
+              <!-- <button class="home-button1 button-clean button2">Features</button> -->
+              <button class="home-button2 button-clean button2"><a href="user-chart.html">User-Journey</a></button>
+              <button class="home-button3 button-clean button2"><a href="team.html">Team</a></button>
 
               <!-- <button class="home-button4 button-clean button">Blog</button> -->
             </nav>
@@ -1578,9 +1578,9 @@
               >
 
                 <span class="home-text"><a href="index.html">Home</a></span>
-                <span class="home-text01">Features</span>
-                <span class="home-text02">User-Journey</span>
-                <span class="home-text03">Team</span>
+                <!-- <span class="home-text01">Features</span> -->
+                <span class="home-text02"><a href="user-chart.html">User-Journey</a></span>
+                <span class="home-text03"><a href="team.html">Team</a></span>
                 <!-- <span class="home-text04">Blog</span> -->
               </nav>
               <div class="home-container2">
@@ -1620,17 +1620,17 @@
             <div class="products">
                 <div class="manage_sales_toolbar"></div>
                 <div style="display: flex; justify-content: space-between; flex-wrap: wrap; align-items: center;">
-                    <h2 class="name_instructions">Name your store</h2>
+                    <h2 class="name_instructions">Event name</h2>
                     <a class="connect_nostr button2" target="_blank"><button>Connect nostr</button></a>
                 </div>
                 <input class="store_name">
                 <div style="display: flex; justify-content: space-between; flex-wrap: wrap; align-items: center;">
-                    <h2 class="product_instructions">Add products</h2>
+                    <h2 class="product_instructions">Add attendance</h2>
                     <a class="public_link button2" target="_blank"><button>View event</button></a>
                 </div>
                 <div class="products_wrapper">
                     <div class="product">
-                        <input placeholder="product name"><input placeholder="image url"><textarea placeholder="description" class="desc"></textarea><select placeholder="shipping zone"><option>--- Shipping zone ---</option><option>Free (digital)</option><option>Worldwide</option><option>Europe</option><option>Australia</option><option>Austria</option><option>Belgium</option><option>Brazil</option><option>Canada</option><option>Denmark</option><option>Finland</option><option>France</option><option>Germany</option><option>Greece</option><option>Hong Kong</option><option>Hungary</option><option>Ireland</option><option>Indonesia</option><option>Israel</option><option>Italy</option><option>Japan</option><option>Kazakhstan</option><option>Korea</option><option>Luxembourg</option><option>Malaysia</option><option>Mexico</option><option>Netherlands</option><option>New Zealand</option><option>Norway</option><option>Poland</option><option>Portugal</option><option>Russia</option><option>Saudi Arabia</option><option>Singapore</option><option>Spain</option><option>Sweden</option><option>Switzerland</option><option>Thailand</option><option>Turkey</option><option>Ukraine</option><option>United Kingdom</option><option>United States</option><option>Vietnam</option><option>China</option></select><input placeholder="Punctuality Reward (USD curr. - e.g. 10.00)" class="price" type="number" step="0.01" min="0"><div style="margin-bottom: 1rem;"><input type="checkbox" style="width: 1rem;vertical-align: middle;margin-bottom: auto;" id="no_price_0"><label for="no_price_0" style="display: inline;vertical-align: middle; color: white; padding-left: 1rem; font-size: 15px; font-weight:bold;">Let the admin set the price</label></div><button class="preview button2">Product preview</button><button class="plus_and_minus button2">Add another attendance</button>
+                        <input placeholder="attendee name"><input placeholder="image url"><textarea placeholder="description (time, date, and day)" class="desc"></textarea><select placeholder="location zone"><option>--- Location zone ---</option><option>Free (digital)</option><option>Worldwide</option><option>Europe</option><option>Australia</option><option>Austria</option><option>Belgium</option><option>Brazil</option><option>Canada</option><option>Denmark</option><option>Finland</option><option>France</option><option>Germany</option><option>Greece</option><option>Hong Kong</option><option>Hungary</option><option>Ireland</option><option>Indonesia</option><option>Israel</option><option>Italy</option><option>Japan</option><option>Kazakhstan</option><option>Kenya</option><option>Korea</option><option>Luxembourg</option><option>Malaysia</option><option>Mexico</option><option>Netherlands</option><option>New Zealand</option><option>Nigeria</option><option>Norway</option><option>Poland</option><option>Portugal</option><option>Russia</option><option>Saudi Arabia</option><option>Singapore</option><option>South Africa</option><option>Spain</option><option>Sweden</option><option>Switzerland</option><option>Thailand</option><option>Turkey</option><option>Ukraine</option><option>United Kingdom</option><option>United States</option><option>Vietnam</option><option>China</option></select><input placeholder="Punctuality Reward (USD curr. - e.g. 10.00)" class="price" type="number" step="0.01" min="0"><div style="margin-bottom: 1rem;"><input type="checkbox" style="width: 1rem;vertical-align: middle;margin-bottom: auto;" id="no_price_0"><label for="no_price_0" style="display: inline;vertical-align: middle; color: white; padding-left: 1rem; font-size: 15px; font-weight:bold;">Let the admin set the price</label></div><button class="preview button2">Attendance preview</button><button class="plus_and_minus button2">Add another attendance</button>
                     </div>
                 </div>
             </div>
@@ -1957,7 +1957,7 @@
                         console.log( "make sure this gets to the relay:", JSON.stringify([ "EVENT", signedEvent ]) );
                         //notify the store owner if they are authenticated
                         if ( store_meta.owner_pub ) {
-                            var encrypted = encrypt( stores_auth_privkey, store_meta.owner_pub, "This is a notification of sale. Check your magic webstore for more details." );
+                            var encrypted = encrypt( stores_auth_privkey, store_meta.owner_pub, "This is a notification of approval. Check your SatsToGo! for more details." );
                             var event = {
                                 "content"    : encrypted,
                                 "created_at" : Math.floor( Date.now() / 1000 ),
@@ -1979,7 +1979,7 @@
                         });
                         cart = [];
                         if ( $( '.minicart_item_count' ) ) $( '.minicart_item_count' ).innerText = 0;
-                        var content = `<p>Thank you for your business. Here is your receipt:</p><p style="font-weight: bold;">Items purchased</p>${receipt_items}<p>Total: $${( total / 100 ).toFixed( 2 )}</p><p>Proof of payment: ${whisper_data[ "whisper_key" ]}</p><p>Keep this on you til you recieve your item. If the seller does not send you your item, contact them and show them your proof of payment.</p>`;
+                        var content = `<p>Thank you for your punctuality. Here is your receipt:</p><p style="font-weight: bold;">Events rewarded</p>${receipt_items}<p>Total: $${( total / 100 ).toFixed( 2 )}</p><p>Proof of payment: ${whisper_data[ "whisper_key" ]}</p><p>Keep this on you til you recieve your item. If the seller does not send you your item, contact them and show them your proof of payment.</p>`;
                         showModal( content, true );
                         await getNote( "modal_cleared" );
                     }
