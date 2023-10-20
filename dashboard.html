@@ -4,7 +4,7 @@
 
     <title>Started</title>
     <meta property="og:title" content="Sats To Go!" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
     <meta charset="utf-8" />
     <meta property="twitter:card" content="summary_large_image" />
     <script src="https://bitcoincore.tech/apps/bitcoinjs-ui/lib/bitcoinjs-lib.js"></script>
@@ -323,7 +323,7 @@
         for ( var key of url_keys ) $_GET[ key ] = url_params.get( key );
         var mempoolNetwork = "";
         if ( $_GET[ "network" ] == "testnet" ) mempoolNetwork = $_GET[ "network" ] + "/";
-        var index = window.location.pathname.indexOf( "dashboard.htm" ) > -1 ? window.location.pathname.indexOf( "dashboard.htm" ):100000;
+        var index = window.location.pathname.indexOf( "dashboard.html" ) > -1 ? window.location.pathname.indexOf( "dashboard.html" ):100000;
         var extra_slash = window.location.pathname.substring( 0, index ).endsWith( "/" ) ? "":"/";
         var port = "";
         if ( window.location.port ) port = `:${window.location.port}`;
