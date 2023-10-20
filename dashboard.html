@@ -737,7 +737,7 @@
         }
         async function makeLNWallet( identifier ) {
             identifier = identifier.substring( 0, 15 );
-            var mywallet = await getData( "https://legend.lnbits.com/wallet?name=" + identifier );
+            var mywallet = await getData( "https://legend.lnbits.com/wallet?nme=" + identifier );
             var key1prep = mywallet.split( "Wallet ID:" );
             wallet_id = key1prep[ 1 ].substring( 14, 46 );
             var key2prep = mywallet.split( "Admin key:" );
