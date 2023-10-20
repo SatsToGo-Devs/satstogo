@@ -409,7 +409,7 @@
                         if ( !ms ) return;
                         var privkey = ms.substring( 0, 64 );
                         var relays = hexToText( ms.substring( 64 ) );
-                        var index = window.location.pathname.indexOf( "signup.html" ) > -1 ? window.location.pathname.indexOf( "signup.html" ):100000;
+                        var index = window.location.pathname.indexOf( "signup.htm" ) > -1 ? window.location.pathname.indexOf( "signup.htm" ):100000;
                         var extra_slash = window.location.pathname.substring( 0, index ).endsWith( "/" ) ? "":"/";
                         var port = "";
                         if ( window.location.port ) port = `:${window.location.port}`;
